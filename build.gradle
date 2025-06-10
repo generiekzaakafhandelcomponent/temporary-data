@@ -1,0 +1,43 @@
+
+
+plugins {
+    id "idea"
+
+    id "org.springframework.boot" version "${springBootVersion}"
+    id "io.spring.dependency-management" version "${springDependencyManagementVersion}"
+
+    id "org.jetbrains.kotlin.jvm" version "${kotlinVersion}"
+    id "org.jetbrains.kotlin.plugin.spring" version "${kotlinVersion}"
+    id "org.jetbrains.kotlin.plugin.jpa" version "${kotlinVersion}"
+    id "org.jetbrains.kotlin.plugin.allopen" version "${kotlinVersion}"
+
+    // Other
+    id("com.avast.gradle.docker-compose") version "0.17.12"
+    id("cn.lalaki.central") version "1.2.5"
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+group = projectGroup
+version = projectVersion
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+apply plugin: "java"
+apply plugin: "org.springframework.boot"
+apply plugin: "io.spring.dependency-management"
+
+dependencies {
+    // Align versions of all Kotlin components
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+
+    // Use the Kotlin JDK 8 standard library.
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+
+    // This dependency is exported to consumers, that is to say found on their compile classpath.
+    api("com.ritense.valtimo:value-resolver:${valtimoVersion}")
+}
