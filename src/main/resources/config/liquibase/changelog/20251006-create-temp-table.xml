@@ -1,0 +1,22 @@
+<changeSet id="create-map-store-table" author="Haiko van der Schaaf">
+    <comment>Create table for storing Java maps as JSON/text data</comment>
+
+    <createTable tableName="temporary_data">
+        <column name="zaak_uuid" type="${uuidType}" autoIncrement="true">
+            <constraints primaryKey="true" nullable="false" primaryKeyName="tempdata_zaak_uuidPK"/>
+        </column>
+
+        <column name="zaak_id" type="VARCHAR(255)" autoIncrement="true">
+            <constraints  nullable="false" unique="true"/>
+        </column>
+
+        <column name="map_data" type="TEXT">
+            <constraints nullable="false"/>
+        </column>
+    </createTable>
+
+    <!-- Add index on zaak_id for better query performance -->
+    <createIndex tableName="temporary_data" indexName="idx_temporary_data_zaak_id">
+        <column name="zaak_id"/>
+    </createIndex>
+</changeSet>
