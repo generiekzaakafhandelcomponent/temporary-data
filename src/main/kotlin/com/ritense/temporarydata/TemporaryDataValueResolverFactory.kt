@@ -4,7 +4,7 @@ import com.ritense.valueresolver.ValueResolverFactory
 import org.camunda.bpm.engine.delegate.VariableScope
 import java.util.function.Function
 
-open class TemporaryDataValueResolverFactory (): ValueResolverFactory {
+open class TemporaryDataValueResolverFactory : ValueResolverFactory {
     override fun createResolver(documentId: String): Function<String, Any?> {
         TODO("Not yet implemented")
     }
@@ -22,6 +22,6 @@ open class TemporaryDataValueResolverFactory (): ValueResolverFactory {
     }
 
     companion object {
-        const val PREFIX = "td"
+        const val PREFIX = "tzd" // temporary zaak data
     }
 }
