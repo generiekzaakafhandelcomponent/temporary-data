@@ -12,11 +12,11 @@ class MapJsonConverter(
         return mapper.writeValueAsString(map);
     }
 
-    override fun convertToEntityAttribute(json: String): Map<String, Any> {
+    override fun convertToEntityAttribute(json: String): MutableMap<String, Any> {
         if (!StringUtils.hasText(json)) {
-            return emptyMap()
+            return mutableMapOf()
         }
-        val typeRef = object : TypeReference<Map<String, Any>>() {}
+        val typeRef = object : TypeReference<MutableMap<String, Any>>() {}
         return mapper.readValue(json, typeRef)
     }
 }

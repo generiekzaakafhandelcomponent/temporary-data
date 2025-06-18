@@ -9,6 +9,7 @@ import java.util.UUID
 
 @Entity
 @Table(name = "temporary_data")
+
 data class ZaakTemporaryData (
 
     @Id
@@ -20,5 +21,5 @@ data class ZaakTemporaryData (
 
     @Convert(converter = MapJsonConverter::class)
     @Column(name = "map_data")
-    val mapData: Map<String, Any>
+    val mapData: MutableMap<String, Any>
 )

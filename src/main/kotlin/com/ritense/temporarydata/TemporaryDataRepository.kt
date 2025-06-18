@@ -16,4 +16,6 @@ interface TemporaryDataRepository : JpaRepository<ZaakTemporaryData, UUID> {
     fun existsByZaakId(zaakId: String): Boolean
 
     fun deleteByZaakId(zaakId: String)
+
+
 }
