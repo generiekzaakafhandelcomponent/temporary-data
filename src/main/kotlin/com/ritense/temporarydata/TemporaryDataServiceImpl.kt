@@ -10,7 +10,7 @@ open class TemporaryDataServiceImpl(
 ): TemporaryDataService {
 
     @Transactional
-    override fun createTempData(zaakUUID: UUID, zaakId: String, tempData: Map<String, Any>) {
+    override fun createOrUpdateTempData(zaakUUID: UUID, zaakId: String, tempData: Map<String, Any?>) {
         reposistory.save(ZaakTemporaryData(zaakUUID, zaakId, tempData.toMutableMap()))
     }
 
@@ -20,16 +20,16 @@ open class TemporaryDataServiceImpl(
     }
 
     @Transactional
-    override fun storeTempData(zaakUUID: UUID, key: String, tempData:Any) {
+    override fun storeTempData(zaakUUID: UUID, key: String, tempData:Any?) {
         var data = reposistory.findByZaakUUID(zaakUUID).get()
-        data.mapData.put(key, tempData);
+        data.mapData.put(key, tempData)
         reposistory.save(data)
     }
 
     @Transactional
-    override fun storeTempData(zaakId: String, key: String, tempData: Any) {
+    override fun storeTempData(zaakId: String, key: String, tempData: Any?) {
         var data = reposistory.findByZaakId(zaakId).get()
-        data.mapData.put(key, tempData);
+        data.mapData.put(key, tempData)
         reposistory.save(data)
     }
 
@@ -48,7 +48,7 @@ open class TemporaryDataServiceImpl(
 
     @Transactional
     override fun removeZaakTempData(zaakUUID: UUID) {
-        reposistory.deleteByZaakUUID(zaakUUID);
+        reposistory.deleteByZaakUUID(zaakUUID)
     }
 
 }

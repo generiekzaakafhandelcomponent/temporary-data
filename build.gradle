@@ -37,6 +37,8 @@ dependencies {
     api("com.ritense.valtimo:value-resolver:${valtimoVersion}")
     api("com.ritense.valtimo:zaken-api:${valtimoVersion}")
     api("com.ritense.valtimo:contract:${valtimoVersion}")
+    api("com.ritense.valtimo:process-document:${valtimoVersion}")
+    api("com.ritense.valtimo:plugin:${valtimoVersion}")
 
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
@@ -47,4 +49,5 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    implementation 'io.github.oshai:kotlin-logging-jvm:5.1.0'
 }
