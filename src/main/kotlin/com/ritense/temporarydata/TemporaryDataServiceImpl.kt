@@ -4,7 +4,6 @@ import com.ritense.valtimo.contract.annotation.ProcessBean
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
-@ProcessBean
 open class TemporaryDataServiceImpl(
     val reposistory: TemporaryDataRepository
 ): TemporaryDataService {

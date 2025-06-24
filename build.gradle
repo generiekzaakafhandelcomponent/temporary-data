@@ -98,8 +98,8 @@ dependencies {
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     implementation 'io.github.oshai:kotlin-logging-jvm:5.1.0'
 
+    // test dependencies
     testApi("com.ritense.valtimo:zaken-api:${valtimoVersion}")
-
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
     testImplementation 'io.mockk:mockk:1.14.3'

@@ -12,8 +12,6 @@ import java.net.URI
 import java.util.*
 import java.util.function.Function
 
-private val logger = KotlinLogging.logger {}
-const val PREFIX = "tzd" // temporary zaak data
 
 open class TemporaryDataValueResolverFactory (
     private val temporaryDataService: TemporaryDataService,
@@ -64,5 +62,10 @@ open class TemporaryDataValueResolverFactory (
         requireNotNull(zakenApiPluginInstance) { "No plugin configuration was found for zaak with URL $zaakUrl" }
 
         return zakenApiPluginInstance
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
+        const val PREFIX = "tzd" // temporary zaak data
     }
 }

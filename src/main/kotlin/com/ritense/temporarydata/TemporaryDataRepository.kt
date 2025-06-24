@@ -1,8 +1,10 @@
 package com.ritense.temporarydata
 
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.stereotype.Repository
 import java.util.*
 
+@Repository
 interface TemporaryDataRepository : JpaRepository<ZaakTemporaryData, UUID> {
 
     fun findByZaakUUID(zaakUUID: UUID): Optional<ZaakTemporaryData>
