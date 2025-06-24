@@ -1,5 +1,3 @@
-
-
 plugins {
     id "idea"
 
@@ -23,13 +21,61 @@ group = projectGroup
 version = projectVersion
 
 repositories {
-    mavenCentral()
     mavenLocal()
+    mavenCentral()
+    maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/") }
+    maven { url = uri("https://repo.ritense.com/repository/maven-public/") }
+    maven { url = uri("https://repo.ritense.com/repository/maven-snapshot/") }
 }
 
 apply plugin: "java"
 apply plugin: "org.springframework.boot"
 apply plugin: "io.spring.dependency-management"
+apply plugin : "idea"
+apply plugin : "java-library"
+apply plugin : "kotlin"
+apply plugin : "kotlin-spring"
+apply plugin : "kotlin-jpa"
+apply plugin : "com.avast.gradle.docker-compose"
+apply plugin : "maven-publish"
+
+java.sourceCompatibility = JavaVersion.VERSION_17
+java.targetCompatibility = JavaVersion.VERSION_17
+
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+test {
+    useJUnitPlatform()
+}
+
+configurations {
+    testImplementation {
+        // Globally exclude JUnit4, will not be on the testCompileClasspath thus
+        exclude group: 'junit', module: 'junit'
+    }
+}
+
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
+def Os = DefaultNativePlatform.currentOperatingSystem
+
+if (Os.isMacOsX()) {
+    println("Configure docker compose for macOs")
+    dockerCompose {
+        projectNamePrefix = "temporary-data-test-"
+        setProjectName("${rootProject.name}-${project.name}")
+        executable = "/usr/local/bin/docker-compose"
+        dockerExecutable = "/usr/local/bin/docker"
+    }
+}
+
+tasks.bootJar {
+    enabled = false
+}
 
 dependencies {
 
@@ -37,6 +83,7 @@ dependencies {
     api("com.ritense.valtimo:value-resolver:${valtimoVersion}")
     api("com.ritense.valtimo:zaken-api:${valtimoVersion}")
     api("com.ritense.valtimo:contract:${valtimoVersion}")
+    api("com.ritense.valtimo:document:${valtimoVersion}")
     api("com.ritense.valtimo:process-document:${valtimoVersion}")
     api("com.ritense.valtimo:plugin:${valtimoVersion}")
 
@@ -50,4 +97,11 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
     implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
     implementation 'io.github.oshai:kotlin-logging-jvm:5.1.0'
+
+    testApi("com.ritense.valtimo:zaken-api:${valtimoVersion}")
+
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    testImplementation 'io.mockk:mockk:1.14.3'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }
