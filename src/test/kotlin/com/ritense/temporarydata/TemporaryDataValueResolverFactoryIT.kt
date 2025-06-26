@@ -8,7 +8,10 @@ import com.ritense.document.service.impl.JsonSchemaDocumentService
 import com.ritense.form.repository.FormDefinitionRepository
 import com.ritense.form.service.PrefillFormService
 import com.ritense.zakenapi.ZakenApiAuthentication
+import okhttp3.mockwebserver.Dispatcher
+import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 
 
 import org.assertj.core.api.Assertions.assertThat
@@ -37,12 +40,12 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
     internal fun setUp() {
         server = MockWebServer()
         setupMockZakenApiServer()
-        server.start(port = 56273)
+    //    server.start(port = 56273)
     }
 
     @AfterEach
     internal fun tearDown() {
-        server.shutdown()
+       // server.shutdown()
     }
 
 
@@ -68,16 +71,16 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
     }
 
     private fun setupMockZakenApiServer() {
-        server.dispatcher = object : Dispatcher() {
-            @Throws(InterruptedException::class)
-            override fun dispatch(request: RecordedRequest): MockResponse {
-                val response = when (request.requestLine) {
-                    "GET /zaken/57f66ff6-db7f-43bc-84ef-6847640d3609 HTTP/1.1" -> getZaakRequest()
-                    else -> MockResponse().setResponseCode(404)
-                }
-                return response
-            }
-        }
+      //  server.dispatcher = object : Dispatcher() {
+//            @Throws(InterruptedException::class)
+//            override fun dispatch(request: RecordedRequest): MockResponse {
+//                val response = when (request.requestLine) {
+//                    "GET /zaken/57f66ff6-db7f-43bc-84ef-6847640d3609 HTTP/1.1" -> getZaakRequest()
+//                    else -> MockResponse().setResponseCode(404)
+//                }
+//                return response
+//            }
+//        }
     }
 
     private fun getZaakRequest(): MockResponse {

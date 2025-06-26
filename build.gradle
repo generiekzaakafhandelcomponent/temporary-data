@@ -48,6 +48,10 @@ java {
     withJavadocJar()
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 test {
     useJUnitPlatform()
 }
@@ -90,6 +94,7 @@ tasks.bootJar {
 }
 
 tasks.withType(KotlinCompile).configureEach {
+    jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
         freeCompilerArgs.add("-Xemit-jvm-type-annotations")
@@ -99,12 +104,12 @@ tasks.withType(KotlinCompile).configureEach {
 dependencies {
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api("com.ritense.valtimo:value-resolver:${valtimoVersion}")
-    api("com.ritense.valtimo:zaken-api:${valtimoVersion}")
-    api("com.ritense.valtimo:contract:${valtimoVersion}")
-    api("com.ritense.valtimo:document:${valtimoVersion}")
-    api("com.ritense.valtimo:process-document:${valtimoVersion}")
-    api("com.ritense.valtimo:plugin:${valtimoVersion}")
+    compileOnly("com.ritense.valtimo:value-resolver:${valtimoVersion}")
+    compileOnly("com.ritense.valtimo:zaken-api:${valtimoVersion}")
+    compileOnly("com.ritense.valtimo:contract:${valtimoVersion}")
+    compileOnly("com.ritense.valtimo:document:${valtimoVersion}")
+    compileOnly("com.ritense.valtimo:process-document:${valtimoVersion}")
+    compileOnly("com.ritense.valtimo:plugin:${valtimoVersion}")
 
     // Align versions of all Kotlin components
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))

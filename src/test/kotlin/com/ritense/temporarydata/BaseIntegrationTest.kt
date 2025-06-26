@@ -16,8 +16,6 @@
 
 package com.ritense.temporarydata
 
-import com.ritense.plugin.repository.PluginConfigurationRepository
-import com.ritense.plugin.service.PluginService
 import com.ritense.resource.service.ResourceService
 
 import okhttp3.mockwebserver.MockResponse
