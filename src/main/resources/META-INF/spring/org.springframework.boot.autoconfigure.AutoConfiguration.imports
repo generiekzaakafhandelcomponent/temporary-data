@@ -1,1 +1,2 @@
 com.ritense.temporarydata.autoconfigure.TemporaryDataAutoConfiguration
+com.ritense.temporarydata.autoconfigure.TemporaryDataLiquibaseAutoConfiguration

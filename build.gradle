@@ -59,7 +59,19 @@ configurations {
     }
 }
 
+jar {
+    enabled = true
+    manifest {
+        attributes(
+                "Implementation-Title": projectName,
+                "Implementation-Version": projectVersion
+        )
+    }
+}
+
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 def Os = DefaultNativePlatform.currentOperatingSystem
 
@@ -77,6 +89,13 @@ tasks.bootJar {
     enabled = false
 }
 
+tasks.withType(KotlinCompile).configureEach {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs.add("-Xemit-jvm-type-annotations")
+    }
+}
+
 dependencies {
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
@@ -92,6 +111,7 @@ dependencies {
 
     // Use the Kotlin JDK 8 standard library.
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
 
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "com.fasterxml.jackson.module:jackson-module-jaxb-annotations"
@@ -101,7 +121,23 @@ dependencies {
     // test dependencies
     testApi("com.ritense.valtimo:zaken-api:${valtimoVersion}")
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+    testImplementation("com.ritense.valtimo:resource:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:form:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:process-document:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:authorization:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:test-utils-common:${valtimoVersion}")
+
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    testImplementation "org.springframework.security:spring-security-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-webflux"
+
+    testImplementation "org.jetbrains.kotlin:kotlin-test"
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
     testImplementation 'io.mockk:mockk:1.14.3'
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"
+    testImplementation "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
+    testImplementation "com.squareup.okhttp3:okhttp:${okhttpVersion}"
 }

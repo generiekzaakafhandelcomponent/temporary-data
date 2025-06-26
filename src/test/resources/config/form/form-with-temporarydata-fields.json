@@ -1,0 +1,23 @@
+{
+    "display": "form",
+    "components": [
+        {
+            "key": "relatieNummer",
+            "type": "textfield",
+            "label": "Relatie nummer",
+            "properties": {
+                "sourceKey": "tzd:relatieNummer"
+            },
+            "input": true
+        },
+        {
+            "key": "factuurNummer",
+            "type": "textfield",
+            "label": "FactuurNummwe",
+            "properties": {
+                "sourceKey": "tzd:factuurNummer"
+            },
+            "input": true
+        }
+    ]
+}
