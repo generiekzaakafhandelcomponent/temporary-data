@@ -1,22 +1,27 @@
-<changeSet id="create-temporary-data-table" author="Haiko van der Schaaf">
-    <comment>Create table for storing Java maps as JSON/text data</comment>
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <changeSet id="create-temporary-data-table" author="Haiko van der Schaaf">
+        <comment>Create table for storing Java maps as JSON/text data</comment>
 
-    <createTable tableName="temporary_data">
-        <column name="zaak_uuid" type="${uuidType}" autoIncrement="true">
-            <constraints primaryKey="true" nullable="false" primaryKeyName="tempdata_zaak_uuidPK"/>
-        </column>
+        <createTable tableName="temporary_data">
+            <column name="zaak_uuid" type="${uuidType}">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="tempdata_zaak_uuidPK"/>
+            </column>
 
-        <column name="zaak_id" type="VARCHAR(255)" autoIncrement="true">
-            <constraints  nullable="false" unique="true"/>
-        </column>
+            <column name="zaak_id" type="VARCHAR(255)" autoIncrement="true">
+                <constraints  nullable="false" unique="true"/>
+            </column>
 
-        <column name="map_data" type="TEXT">
-            <constraints nullable="false"/>
-        </column>
-    </createTable>
+            <column name="map_data" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
 
-    <!-- Add index on zaak_id for better query performance -->
-    <createIndex tableName="temporary_data" indexName="idx_temporary_data_zaak_id">
-        <column name="zaak_id"/>
-    </createIndex>
-</changeSet>
+        <!-- Add index on zaak_id for better query performance -->
+        <createIndex tableName="temporary_data" indexName="idx_temporary_data_zaak_id">
+            <column name="zaak_id"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

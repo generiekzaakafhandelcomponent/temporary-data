@@ -1,11 +1,17 @@
 package com.ritense.temporarydata
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.ritense.valtimo.contract.annotation.ProcessBean
+import com.ritense.zakenapi.domain.ZaakInstanceLink
+import com.ritense.zakenapi.domain.ZaakResponse
+import com.ritense.zakenapi.event.ZaakCreated
+import org.springframework.context.event.EventListener
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 open class TemporaryDataServiceImpl(
-    val reposistory: TemporaryDataRepository
+    val reposistory: TemporaryDataRepository,
+    val objectMapper: ObjectMapper
 ): TemporaryDataService {
 
     @Transactional
@@ -48,6 +54,13 @@ open class TemporaryDataServiceImpl(
     @Transactional
     override fun removeZaakTempData(zaakUUID: UUID) {
         reposistory.deleteByZaakUUID(zaakUUID)
+    }
+
+    @EventListener(ZaakCreated::class)
+    fun createTempDataMap(event: ZaakCreated) {
+        val zaakResponse = objectMapper.readValue(event.result.toString(), ZaakResponse::class.java)
+        val emptyTempData = ZaakTemporaryData(zaakResponse.uuid, zaakResponse.identificatie as String, mutableMapOf())
+        reposistory.save(emptyTempData);
     }
 
 }

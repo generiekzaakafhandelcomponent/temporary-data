@@ -1,11 +1,22 @@
 package com.ritense.temporarydata
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.ritense.zakenapi.domain.ZaakResponse
+import com.ritense.zakenapi.event.ZaakCreated
+import com.ritense.zgw.Rsin
 import io.mockk.*
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.net.URI
+import java.time.LocalDate
 import java.util.*
+
 
 class TemporaryDataServiceImplTest {
 
@@ -16,11 +27,21 @@ class TemporaryDataServiceImplTest {
     private val testZaakId = "ZAAK-123"
     private val testKey = "testKey"
     private val testValue = "testValue"
+    private val testZaakUrl = URI.create("https://api.example.com/zaken/api/v1/zaken/${testZaakUUID}")
+
+    private lateinit var mapper: ObjectMapper
+
+
 
     @BeforeEach
     fun setUp() {
+        mapper = ObjectMapper()
+        mapper.registerModule(JavaTimeModule())
+        mapper.registerModule(KotlinModule())
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+
         repository = mockk()
-        service = TemporaryDataServiceImpl(repository)
+        service = TemporaryDataServiceImpl(repository, mapper)
     }
 
     @Test
@@ -315,5 +336,38 @@ class TemporaryDataServiceImplTest {
         assertEquals(true, service.getTempData(testZaakUUID, "booleanValue"))
         assertEquals(listOf(1, 2, 3), service.getTempData(testZaakUUID, "listValue"))
         assertEquals(mapOf("nested" to "value"), service.getTempData(testZaakUUID, "mapValue"))
+    }
+
+    @Test
+    fun `createTempDataMap should create and save temporary data for valid zaak`() {
+        // Given
+        val zaakResponse = createValidZaakResponse()
+        val event = ZaakCreated(zaakResponse.url.toString(), mapper.valueToTree(zaakResponse))
+
+        every { repository.save(any<ZaakTemporaryData>()) } returns mockk()
+
+        // When
+        service.createTempDataMap(event)
+
+        // Then
+        verify(exactly = 1) {
+            repository.save(match<ZaakTemporaryData> {
+                it.zaakUUID == testZaakUUID &&
+                        it.zaakId == testZaakId &&
+                        it.mapData.isEmpty()
+            })
+        }
+    }
+
+    private fun createValidZaakResponse(): ZaakResponse {
+        return ZaakResponse(
+            url = testZaakUrl,
+            uuid = testZaakUUID,
+            identificatie = testZaakId,
+            bronorganisatie = Rsin("002564440"),
+            zaaktype = URI.create("https://api.example.com/zaaktypen/1"),
+            verantwoordelijkeOrganisatie = Rsin("002564440"),
+            startdatum = LocalDate.now()
+        )
     }
 }

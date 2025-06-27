@@ -106,6 +106,7 @@ dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly("com.ritense.valtimo:value-resolver:${valtimoVersion}")
     compileOnly("com.ritense.valtimo:zaken-api:${valtimoVersion}")
+    compileOnly("com.ritense.valtimo:outbox:${valtimoVersion}")
     compileOnly("com.ritense.valtimo:contract:${valtimoVersion}")
     compileOnly("com.ritense.valtimo:document:${valtimoVersion}")
     compileOnly("com.ritense.valtimo:process-document:${valtimoVersion}")
@@ -124,13 +125,17 @@ dependencies {
     implementation 'io.github.oshai:kotlin-logging-jvm:5.1.0'
 
     // test dependencies
-    testApi("com.ritense.valtimo:zaken-api:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:zaken-api:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:zgw:${valtimoVersion}")
 
     testImplementation("com.ritense.valtimo:resource:${valtimoVersion}")
     testImplementation("com.ritense.valtimo:form:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:document:${valtimoVersion}")
     testImplementation("com.ritense.valtimo:process-document:${valtimoVersion}")
     testImplementation("com.ritense.valtimo:authorization:${valtimoVersion}")
     testImplementation("com.ritense.valtimo:test-utils-common:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:core:${valtimoVersion}")
+    testImplementation("com.ritense.valtimo:value-resolver:${valtimoVersion}")
 
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"

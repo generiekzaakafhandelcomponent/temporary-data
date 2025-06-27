@@ -1,5 +1,6 @@
 package com.ritense.temporarydata.autoconfigure
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.ritense.plugin.service.PluginService
 import com.ritense.processdocument.service.ProcessDocumentService
 import com.ritense.temporarydata.*
@@ -20,9 +21,10 @@ class TemporaryDataAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(TemporaryDataService::class)
     fun temporaryDataService (
-        reposistory: TemporaryDataRepository
+        reposistory: TemporaryDataRepository,
+        objectMapper: ObjectMapper
     ): TemporaryDataService  {
-        return TemporaryDataServiceImpl(reposistory)
+        return TemporaryDataServiceImpl(reposistory, objectMapper)
     }
 
     @Bean
