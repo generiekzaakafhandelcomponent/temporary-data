@@ -1,12 +1,10 @@
 package com.ritense.temporarydata
 
 import org.junit.jupiter.api.Assertions.*
-import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 class MapJsonConverterTest {
 
@@ -87,7 +85,6 @@ class MapJsonConverterTest {
 
         // Then
         assertEquals(expectedMap, result)
-        assertTrue(result is MutableMap)
         verify(exactly = 1) { objectMapper.readValue(jsonString, any<com.fasterxml.jackson.core.type.TypeReference<MutableMap<String, Any>>>()) }
     }
 
@@ -140,7 +137,6 @@ class MapJsonConverterTest {
 
         // Then
         assertTrue(result.isEmpty())
-        assertTrue(result is MutableMap)
         verify(exactly = 0) { objectMapper.readValue(any<String>(), any<com.fasterxml.jackson.core.type.TypeReference<MutableMap<String, Any>>>()) }
     }
 
@@ -151,7 +147,6 @@ class MapJsonConverterTest {
 
         // Then
         assertTrue(result.isEmpty())
-        assertTrue(result is MutableMap)
         verify(exactly = 0) { objectMapper.readValue(any<String>(), any<com.fasterxml.jackson.core.type.TypeReference<MutableMap<String, Any>>>()) }
     }
 

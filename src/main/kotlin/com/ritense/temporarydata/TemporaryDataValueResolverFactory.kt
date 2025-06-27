@@ -43,7 +43,7 @@ open class TemporaryDataValueResolverFactory (
             "zaakresponse  on url ${zaakResponse.url} does not contain identificatie"
         }
 
-        temporaryDataService.createOrUpdateTempData(zaakResponse.uuid, zaakResponse.identificatie!!, values)
+        temporaryDataService.createOrUpdateTempData(zaakResponse.uuid.toString(), zaakResponse.identificatie!!, values)
     }
 
     override fun supportedPrefix(): String {

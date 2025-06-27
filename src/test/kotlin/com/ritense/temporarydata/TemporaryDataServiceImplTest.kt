@@ -53,7 +53,7 @@ class TemporaryDataServiceImplTest {
         every { repository.save(any<ZaakTemporaryData>()) } returns expectedZaakTempData
 
         // When
-        service.createOrUpdateTempData(testZaakUUID, testZaakId, tempData)
+        service.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, tempData)
 
         // Then
         verify(exactly = 1) {
@@ -74,7 +74,7 @@ class TemporaryDataServiceImplTest {
         every { repository.save(any<ZaakTemporaryData>()) } returns expectedZaakTempData
 
         // When
-        service.createOrUpdateTempData(testZaakUUID, testZaakId, emptyTempData)
+        service.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, emptyTempData)
 
         // Then
         verify(exactly = 1) {
@@ -94,7 +94,7 @@ class TemporaryDataServiceImplTest {
         every { repository.save(any<ZaakTemporaryData>()) } returns expectedZaakTempData
 
         // When
-        service.createTempData(testZaakUUID, testZaakId)
+        service.createTempData(testZaakUUID.toString(), testZaakId)
 
         // Then
         verify(exactly = 1) {

@@ -10,7 +10,7 @@
                 <constraints primaryKey="true" nullable="false" primaryKeyName="tempdata_zaak_uuidPK"/>
             </column>
 
-            <column name="zaak_id" type="VARCHAR(255)" autoIncrement="true">
+            <column name="zaak_id" type="VARCHAR(255)">
                 <constraints  nullable="false" unique="true"/>
             </column>
 

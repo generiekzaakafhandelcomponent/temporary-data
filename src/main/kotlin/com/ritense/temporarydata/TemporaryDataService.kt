@@ -4,8 +4,8 @@ import java.util.UUID
 
 interface TemporaryDataService {
 
-  fun createOrUpdateTempData(zaakUUID: UUID, zaakId: String, tempData: Map<String, Any?>)
-  fun createTempData(zaakUUID: UUID, zaakId: String)
+  fun createOrUpdateTempData(zaakUUID: String, zaakId: String, tempData: Map<String, Any?>)
+  fun createTempData(zaakUUID: String, zaakId: String)
 
   fun storeTempData(zaakUUID: UUID, key: String, tempData:Any?)
   fun storeTempData(zaakId: String, key: String, tempData:Any?)

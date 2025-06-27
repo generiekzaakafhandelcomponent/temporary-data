@@ -15,13 +15,13 @@ open class TemporaryDataServiceImpl(
 ): TemporaryDataService {
 
     @Transactional
-    override fun createOrUpdateTempData(zaakUUID: UUID, zaakId: String, tempData: Map<String, Any?>) {
-        reposistory.save(ZaakTemporaryData(zaakUUID, zaakId, tempData.toMutableMap()))
+    override fun createOrUpdateTempData(zaakUUID: String, zaakId: String, tempData: Map<String, Any?>) {
+        reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), zaakId, tempData.toMutableMap()))
     }
 
     @Transactional
-    override fun createTempData(zaakUUID: UUID, zaakId: String) {
-        reposistory.save(ZaakTemporaryData(zaakUUID, zaakId, mutableMapOf()))
+    override fun createTempData(zaakUUID: String, zaakId: String) {
+        reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), zaakId, mutableMapOf()))
     }
 
     @Transactional

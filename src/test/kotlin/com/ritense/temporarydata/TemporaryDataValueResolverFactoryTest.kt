@@ -160,7 +160,7 @@ class TemporaryDataValueResolverFactoryTest {
             any()
         ) } returns zakenApiPlugin
         every { zakenApiPlugin.getZaak(testZaakUrl) } returns zaakResponse
-        every { temporaryDataService.createOrUpdateTempData(testZaakUUID, testZaakId, values) } just Runs
+        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, values) } just Runs
 
 
         // When
@@ -175,7 +175,7 @@ class TemporaryDataValueResolverFactoryTest {
         }
         verify(exactly = 1) { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) }
         verify(exactly = 1) { zakenApiPlugin.getZaak(testZaakUrl) }
-        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID, testZaakId, values) }
+        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, values) }
 
         unmockkStatic(ZakenApiPlugin::class)
     }
@@ -198,7 +198,7 @@ class TemporaryDataValueResolverFactoryTest {
             any()
         ) } returns zakenApiPlugin
         every { zakenApiPlugin.getZaak(testZaakUrl) } returns zaakResponse
-        every { temporaryDataService.createOrUpdateTempData(testZaakUUID, testZaakId, values) } just Runs
+        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, values) } just Runs
 
         // When
         factory.handleValues(testProcessInstanceId, null, values)
@@ -210,7 +210,7 @@ class TemporaryDataValueResolverFactoryTest {
                 null
             )
         }
-        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID, testZaakId, values) }
+        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, values) }
 
         unmockkStatic(ZakenApiPlugin::class)
     }
@@ -264,13 +264,13 @@ class TemporaryDataValueResolverFactoryTest {
             any()
         ) } returns zakenApiPlugin
         every { zakenApiPlugin.getZaak(testZaakUrl) } returns zaakResponse
-        every { temporaryDataService.createOrUpdateTempData(testZaakUUID, testZaakId, emptyValues) } just Runs
+        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, emptyValues) } just Runs
 
         // When
         factory.handleValues(testProcessInstanceId, variableScope, emptyValues)
 
         // Then
-        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID, testZaakId, emptyValues) }
+        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, emptyValues) }
 
         unmockkStatic(ZakenApiPlugin::class)
     }
