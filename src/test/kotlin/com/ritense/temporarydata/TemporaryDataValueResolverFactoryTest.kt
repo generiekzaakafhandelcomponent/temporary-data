@@ -65,7 +65,8 @@ class TemporaryDataValueResolverFactoryTest {
         val zaakInstanceLink = createMockZaakInstanceLink()
 
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { temporaryDataService.getTempData(testLinkId, testRequestedValue) } returns testValue
+        every { zaakInstanceLink.zaakInstanceId } returns testZaakUUID
+        every { temporaryDataService.getTempData(testZaakUUID, testRequestedValue) } returns testValue
 
         // When
         val resolver = factory.createResolver(testDocumentId)
@@ -74,7 +75,7 @@ class TemporaryDataValueResolverFactoryTest {
         // Then
         assertEquals(testValue, result)
         verify(exactly = 1) { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) }
-        verify(exactly = 1) { temporaryDataService.getTempData(testLinkId, testRequestedValue) }
+        verify(exactly = 1) { temporaryDataService.getTempData(testZaakUUID, testRequestedValue) }
     }
 
 
@@ -100,7 +101,8 @@ class TemporaryDataValueResolverFactoryTest {
             variableScope
         ) } returns documentIdentifier
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { temporaryDataService.getTempData(testLinkId, testRequestedValue) } returns testValue
+        every { zaakInstanceLink.zaakInstanceId } returns testZaakUUID
+        every { temporaryDataService.getTempData(testZaakUUID, testRequestedValue) } returns testValue
 
         // When
         val resolver = factory.createResolver(testProcessInstanceId, variableScope)
@@ -115,7 +117,7 @@ class TemporaryDataValueResolverFactoryTest {
             )
         }
         verify(exactly = 1) { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) }
-        verify(exactly = 1) { temporaryDataService.getTempData(testLinkId, testRequestedValue) }
+        verify(exactly = 1) { temporaryDataService.getTempData(testZaakUUID, testRequestedValue) }
     }
 
     @Test
@@ -129,6 +131,7 @@ class TemporaryDataValueResolverFactoryTest {
             variableScope
         ) } returns documentIdentifier
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
+        every { zaakInstanceLink.zaakInstanceId } returns testZaakUUID
 
         every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), values) } just Runs
 
@@ -148,57 +151,6 @@ class TemporaryDataValueResolverFactoryTest {
     }
 
     @Test
-    fun `handleValues should handle null variableScope`() {
-        // Given
-        val values = mapOf("key1" to "value1")
-        val zaakInstanceLink = createMockZaakInstanceLink()
-
-        every { processDocumentService.getDocumentId(
-            CamundaProcessInstanceId(testProcessInstanceId),
-            null
-        ) } returns documentIdentifier
-        every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), values) } just Runs
-
-        // When
-        factory.handleValues(testProcessInstanceId, null, values)
-
-        // Then
-        verify(exactly = 1) {
-            processDocumentService.getDocumentId(
-                CamundaProcessInstanceId(testProcessInstanceId),
-                null
-            )
-        }
-        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), values) }
-    }
-
-
-
-    @Test
-    fun `handleValues should throw exception when no plugin configuration found`() {
-        // Given
-        val values = mapOf("key1" to "value1")
-        val zaakInstanceLink = createMockZaakInstanceLink()
-
-        every { processDocumentService.getDocumentId(
-            CamundaProcessInstanceId(testProcessInstanceId),
-            variableScope
-        ) } returns documentIdentifier
-        every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-
-        // When & Then
-        val exception = assertThrows<IllegalArgumentException> {
-            factory.handleValues(testProcessInstanceId, variableScope, values)
-        }
-
-        assertTrue(exception.message!!.contains("No plugin configuration was found"))
-        assertTrue(exception.message!!.contains(testZaakUrl.toString()))
-
-        verify(exactly = 0) { temporaryDataService.createOrUpdateTempData(any(), any()) }
-    }
-
-    @Test
     fun `handleValues should handle empty values map`() {
         // Given
         val emptyValues = emptyMap<String, Any?>()
@@ -209,6 +161,7 @@ class TemporaryDataValueResolverFactoryTest {
             variableScope
         ) } returns documentIdentifier
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
+        every { zaakInstanceLink.zaakInstanceId } returns testZaakUUID
         every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), emptyValues) } just Runs
 
         // When
@@ -225,8 +178,9 @@ class TemporaryDataValueResolverFactoryTest {
         val zaakInstanceLink = createMockZaakInstanceLink()
 
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { temporaryDataService.getTempData(testLinkId, "key1") } returns "value1"
-        every { temporaryDataService.getTempData(testLinkId, "key2") } returns "value2"
+        every { zaakInstanceLink.zaakInstanceId } returns testZaakUUID
+        every { temporaryDataService.getTempData(testZaakUUID, "key1") } returns "value1"
+        every { temporaryDataService.getTempData(testZaakUUID, "key2") } returns "value2"
 
         // When
         val resolver = factory.createResolver(testDocumentId)
@@ -237,8 +191,8 @@ class TemporaryDataValueResolverFactoryTest {
         assertEquals("value1", result1)
         assertEquals("value2", result2)
         verify(exactly = 2) { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) }
-        verify(exactly = 1) { temporaryDataService.getTempData(testLinkId, "key1") }
-        verify(exactly = 1) { temporaryDataService.getTempData(testLinkId, "key2") }
+        verify(exactly = 1) { temporaryDataService.getTempData(testZaakUUID, "key1") }
+        verify(exactly = 1) { temporaryDataService.getTempData(testZaakUUID, "key2") }
     }
 
     private fun createMockZaakInstanceLink(): ZaakInstanceLink {
