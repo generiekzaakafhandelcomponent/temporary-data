@@ -1,13 +1,10 @@
 package com.ritense.temporarydata
 
 import com.ritense.document.domain.Document
-import com.ritense.plugin.service.PluginService
 import com.ritense.processdocument.domain.impl.CamundaProcessInstanceId
 import com.ritense.processdocument.service.ProcessDocumentService
-import com.ritense.zakenapi.ZakenApiPlugin
 import com.ritense.zakenapi.domain.ZaakInstanceLink
 import com.ritense.zakenapi.domain.ZaakInstanceLinkId
-import com.ritense.zakenapi.domain.ZaakResponse
 
 import com.ritense.zakenapi.link.ZaakInstanceLinkService
 import io.mockk.*
@@ -24,7 +21,6 @@ class TemporaryDataValueResolverFactoryTest {
     private lateinit var temporaryDataService: TemporaryDataService
     private lateinit var processDocumentService: ProcessDocumentService
     private lateinit var zaakInstanceLinkService: ZaakInstanceLinkService
-    private lateinit var pluginService: PluginService
     private lateinit var variableScope: VariableScope
     private lateinit var factory: TemporaryDataValueResolverFactory
 
@@ -32,7 +28,6 @@ class TemporaryDataValueResolverFactoryTest {
     private val testDocumentUUID = UUID.fromString(testDocumentId)
     private val documentIdentifier = mockk<Document.Id>()
     private val testProcessInstanceId = UUID.randomUUID().toString()
-    private val testZaakId = "ZAAK-2024-001"
     private val testZaakUUID = UUID.randomUUID()
     private val testZaakUrl = URI.create("https://api.example.com/zaken/api/v1/zaken/${testZaakUUID}")
     private val testRequestedValue = "testKey"
@@ -46,14 +41,12 @@ class TemporaryDataValueResolverFactoryTest {
         temporaryDataService = mockk()
         processDocumentService = mockk()
         zaakInstanceLinkService = mockk()
-        pluginService = mockk()
         variableScope = mockk()
 
         factory = TemporaryDataValueResolverFactory(
             temporaryDataService,
             processDocumentService,
             zaakInstanceLinkService,
-            pluginService
         )
     }
 
@@ -84,23 +77,6 @@ class TemporaryDataValueResolverFactoryTest {
         verify(exactly = 1) { temporaryDataService.getTempData(testLinkId, testRequestedValue) }
     }
 
-    @Test
-    fun `createResolver with documentId should handle null values`() {
-        // Given
-        val zaakInstanceLink = createMockZaakInstanceLink()
-
-        every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { temporaryDataService.getTempData(testLinkId, testRequestedValue) } returns null
-
-        // When
-        val resolver = factory.createResolver(testDocumentId)
-        val result = resolver.apply(testRequestedValue)
-
-        // Then
-        assertNull(result)
-        verify(exactly = 1) { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) }
-        verify(exactly = 1) { temporaryDataService.getTempData(testLinkId, testRequestedValue) }
-    }
 
     @Test
     fun `createResolver with documentId should handle invalid UUID format`() {
@@ -147,20 +123,14 @@ class TemporaryDataValueResolverFactoryTest {
         // Given
         val values = mapOf("key1" to "value1", "key2" to 42)
         val zaakInstanceLink = createMockZaakInstanceLink()
-        val zakenApiPlugin = mockk<ZakenApiPlugin>()
-        val zaakResponse = createMockZaakResponse()
 
         every { processDocumentService.getDocumentId(
             CamundaProcessInstanceId(testProcessInstanceId),
             variableScope
         ) } returns documentIdentifier
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { pluginService.createInstance(
-            ZakenApiPlugin::class.java,
-            any()
-        ) } returns zakenApiPlugin
-        every { zakenApiPlugin.getZaak(testZaakUrl) } returns zaakResponse
-        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, values) } just Runs
+
+        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), values) } just Runs
 
 
         // When
@@ -174,10 +144,7 @@ class TemporaryDataValueResolverFactoryTest {
             )
         }
         verify(exactly = 1) { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) }
-        verify(exactly = 1) { zakenApiPlugin.getZaak(testZaakUrl) }
-        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, values) }
-
-        unmockkStatic(ZakenApiPlugin::class)
+        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), values) }
     }
 
     @Test
@@ -185,20 +152,13 @@ class TemporaryDataValueResolverFactoryTest {
         // Given
         val values = mapOf("key1" to "value1")
         val zaakInstanceLink = createMockZaakInstanceLink()
-        val zakenApiPlugin = mockk<ZakenApiPlugin>()
-        val zaakResponse = createMockZaakResponse()
 
         every { processDocumentService.getDocumentId(
             CamundaProcessInstanceId(testProcessInstanceId),
             null
         ) } returns documentIdentifier
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { pluginService.createInstance(
-            ZakenApiPlugin::class.java,
-            any()
-        ) } returns zakenApiPlugin
-        every { zakenApiPlugin.getZaak(testZaakUrl) } returns zaakResponse
-        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, values) } just Runs
+        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), values) } just Runs
 
         // When
         factory.handleValues(testProcessInstanceId, null, values)
@@ -210,9 +170,7 @@ class TemporaryDataValueResolverFactoryTest {
                 null
             )
         }
-        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, values) }
-
-        unmockkStatic(ZakenApiPlugin::class)
+        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), values) }
     }
 
 
@@ -228,10 +186,6 @@ class TemporaryDataValueResolverFactoryTest {
             variableScope
         ) } returns documentIdentifier
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { pluginService.createInstance(
-            ZakenApiPlugin::class.java,
-            any()
-        ) } returns null
 
         // When & Then
         val exception = assertThrows<IllegalArgumentException> {
@@ -241,9 +195,7 @@ class TemporaryDataValueResolverFactoryTest {
         assertTrue(exception.message!!.contains("No plugin configuration was found"))
         assertTrue(exception.message!!.contains(testZaakUrl.toString()))
 
-        verify(exactly = 0) { temporaryDataService.createOrUpdateTempData(any(), any(), any()) }
-
-        unmockkStatic(ZakenApiPlugin::class)
+        verify(exactly = 0) { temporaryDataService.createOrUpdateTempData(any(), any()) }
     }
 
     @Test
@@ -251,28 +203,19 @@ class TemporaryDataValueResolverFactoryTest {
         // Given
         val emptyValues = emptyMap<String, Any?>()
         val zaakInstanceLink = createMockZaakInstanceLink()
-        val zakenApiPlugin = mockk<ZakenApiPlugin>()
-        val zaakResponse = createMockZaakResponse()
 
         every { processDocumentService.getDocumentId(
             CamundaProcessInstanceId(testProcessInstanceId),
             variableScope
         ) } returns documentIdentifier
         every { zaakInstanceLinkService.getByDocumentId(testDocumentUUID) } returns zaakInstanceLink
-        every { pluginService.createInstance(
-            ZakenApiPlugin::class.java,
-            any()
-        ) } returns zakenApiPlugin
-        every { zakenApiPlugin.getZaak(testZaakUrl) } returns zaakResponse
-        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, emptyValues) } just Runs
+        every { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), emptyValues) } just Runs
 
         // When
         factory.handleValues(testProcessInstanceId, variableScope, emptyValues)
 
         // Then
-        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, emptyValues) }
-
-        unmockkStatic(ZakenApiPlugin::class)
+        verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), emptyValues) }
     }
 
 
@@ -302,14 +245,6 @@ class TemporaryDataValueResolverFactoryTest {
         return mockk<ZaakInstanceLink> {
             every { zaakInstanceLinkId } returns ZaakInstanceLinkId(testLinkId)
             every { zaakInstanceUrl } returns testZaakUrl
-        }
-    }
-
-    private fun createMockZaakResponse(): ZaakResponse {
-        return mockk<ZaakResponse> {
-            every { identificatie } returns testZaakId
-            every { uuid } returns testZaakUUID
-            every { url } returns testZaakUrl
         }
     }
 }

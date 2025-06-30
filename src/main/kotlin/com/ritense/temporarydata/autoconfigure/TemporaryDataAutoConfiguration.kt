@@ -33,8 +33,7 @@ class TemporaryDataAutoConfiguration {
         temporaryDataService: TemporaryDataService,
         processDocumentService: ProcessDocumentService,
         zaakInstanceLinkService: ZaakInstanceLinkService,
-        pluginService: PluginService
     ):TemporaryDataValueResolverFactory {
-        return TemporaryDataValueResolverFactory(temporaryDataService, processDocumentService, zaakInstanceLinkService, pluginService)
+        return TemporaryDataValueResolverFactory(temporaryDataService, processDocumentService, zaakInstanceLinkService)
     }
 }

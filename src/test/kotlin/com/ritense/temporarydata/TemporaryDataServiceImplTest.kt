@@ -4,17 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.ritense.zakenapi.domain.ZaakResponse
-import com.ritense.zakenapi.event.ZaakCreated
-import com.ritense.zgw.Rsin
+
 import io.mockk.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.net.URI
-import java.time.LocalDate
+
 import java.util.*
 
 
@@ -24,12 +21,11 @@ class TemporaryDataServiceImplTest {
     private lateinit var service: TemporaryDataServiceImpl
 
     private val testZaakUUID = UUID.randomUUID()
-    private val testZaakId = "ZAAK-123"
     private val testKey = "testKey"
     private val testValue = "testValue"
-    private val testZaakUrl = URI.create("https://api.example.com/zaken/api/v1/zaken/${testZaakUUID}")
 
     private lateinit var mapper: ObjectMapper
+
 
 
 
@@ -45,43 +41,124 @@ class TemporaryDataServiceImplTest {
     }
 
     @Test
-    fun `createOrUpdateTempData should save ZaakTemporaryData with provided data`() {
+    fun `should create new temp data when zaak does not exist`() {
         // Given
+        val zaakUUID = "550e8400-e29b-41d4-a716-446655440000"
         val tempData = mapOf("key1" to "value1", "key2" to 42)
-        val expectedZaakTempData = ZaakTemporaryData(testZaakUUID, testZaakId, tempData.toMutableMap())
+        val expectedUUID = UUID.fromString(zaakUUID)
 
-        every { repository.save(any<ZaakTemporaryData>()) } returns expectedZaakTempData
+        every { repository.existsByZaakUUID(expectedUUID) } returns false
+        every { repository.save(any<ZaakTemporaryData>()) } returns mockk()
 
         // When
-        service.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, tempData)
+        service.createOrUpdateTempData(zaakUUID, tempData)
 
         // Then
-        verify(exactly = 1) {
+        verify { repository.existsByZaakUUID(expectedUUID) }
+        verify {
             repository.save(match<ZaakTemporaryData> {
-                it.zaakUUID == testZaakUUID &&
-                        it.zaakId == testZaakId &&
-                        it.mapData == tempData.toMutableMap()
+                it.zaakUUID == expectedUUID && it.mapData == tempData.toMutableMap()
+            })
+        }
+        verify(exactly = 0) { repository.findByZaakUUID(any()) }
+    }
+
+    @Test
+    fun `should update existing temp data when zaak exists`() {
+        // Given
+        val zaakUUID = "550e8400-e29b-41d4-a716-446655440000"
+        val expectedUUID = UUID.fromString(zaakUUID)
+        val existingData = mutableMapOf("existingKey" to "existingValue") as MutableMap<String, Any?>
+        val tempData = mapOf("key1" to "value1", "key2" to 42)
+        val existingZaakData = ZaakTemporaryData(expectedUUID, existingData)
+
+        every { repository.existsByZaakUUID(expectedUUID) } returns true
+        every { repository.findByZaakUUID(expectedUUID) } returns Optional.of(existingZaakData)
+        every { repository.save(any<ZaakTemporaryData>()) } returns mockk()
+
+        // When
+        service.createOrUpdateTempData(zaakUUID, tempData)
+
+        // Then
+        verify { repository.existsByZaakUUID(expectedUUID) }
+        verify { repository.findByZaakUUID(expectedUUID) }
+        verify { repository.save(existingZaakData) }
+
+        // Verify that the data was merged correctly
+        val expectedMergedData = mutableMapOf(
+            "existingKey" to "existingValue",
+            "key1" to "value1",
+            "key2" to 42
+        )
+        assertEquals(expectedMergedData, existingZaakData.mapData)
+    }
+
+    @Test
+    fun `should overwrite existing keys when updating temp data`() {
+        // Given
+        val zaakUUID = "550e8400-e29b-41d4-a716-446655440000"
+        val expectedUUID = UUID.fromString(zaakUUID)
+        val existingData = mutableMapOf("key1" to "oldValue", "key2" to "keepThis") as MutableMap<String, Any?>
+        val tempData = mapOf("key1" to "newValue", "key3" to "addThis")
+        val existingZaakData = ZaakTemporaryData(expectedUUID, existingData)
+
+        every { repository.existsByZaakUUID(expectedUUID) } returns true
+        every { repository.findByZaakUUID(expectedUUID) } returns Optional.of(existingZaakData)
+        every { repository.save(any<ZaakTemporaryData>()) } returns mockk()
+
+        // When
+        service.createOrUpdateTempData(zaakUUID, tempData)
+
+        // Then
+        val expectedMergedData = mutableMapOf(
+            "key1" to "newValue",
+            "key2" to "keepThis",
+            "key3" to "addThis"
+        )
+        assertEquals(expectedMergedData, existingZaakData.mapData)
+        verify { repository.save(existingZaakData) }
+    }
+
+    @Test
+    fun `should handle empty temp data map`() {
+        // Given
+        val zaakUUID = "550e8400-e29b-41d4-a716-446655440000"
+        val expectedUUID = UUID.fromString(zaakUUID)
+        val tempData = emptyMap<String, Any?>()
+
+        every { repository.existsByZaakUUID(expectedUUID) } returns false
+        every { repository.save(any<ZaakTemporaryData>()) } returns mockk()
+
+        // When
+        service.createOrUpdateTempData(zaakUUID, tempData)
+
+        // Then
+        verify {
+            repository.save(match<ZaakTemporaryData> {
+                it.zaakUUID == expectedUUID && it.mapData.isEmpty()
             })
         }
     }
 
     @Test
-    fun `createOrUpdateTempData should handle empty map`() {
+    fun `should handle null values in temp data`() {
         // Given
-        val emptyTempData = emptyMap<String, Any?>()
-        val expectedZaakTempData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf())
+        val zaakUUID = "550e8400-e29b-41d4-a716-446655440000"
+        val expectedUUID = UUID.fromString(zaakUUID)
+        val tempData = mapOf("key1" to "value1", "key2" to null, "key3" to 42)
 
-        every { repository.save(any<ZaakTemporaryData>()) } returns expectedZaakTempData
+        every { repository.existsByZaakUUID(expectedUUID) } returns false
+        every { repository.save(any<ZaakTemporaryData>()) } returns mockk()
 
         // When
-        service.createOrUpdateTempData(testZaakUUID.toString(), testZaakId, emptyTempData)
+        service.createOrUpdateTempData(zaakUUID, tempData)
 
         // Then
-        verify(exactly = 1) {
+        verify {
             repository.save(match<ZaakTemporaryData> {
-                it.zaakUUID == testZaakUUID &&
-                        it.zaakId == testZaakId &&
-                        it.mapData.isEmpty()
+                it.zaakUUID == expectedUUID &&
+                        it.mapData == tempData.toMutableMap() &&
+                        it.mapData["key2"] == null
             })
         }
     }
@@ -89,18 +166,17 @@ class TemporaryDataServiceImplTest {
     @Test
     fun `createTempData should save ZaakTemporaryData with empty map`() {
         // Given
-        val expectedZaakTempData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf())
+        val expectedZaakTempData = ZaakTemporaryData(testZaakUUID, mutableMapOf())
 
         every { repository.save(any<ZaakTemporaryData>()) } returns expectedZaakTempData
 
         // When
-        service.createTempData(testZaakUUID.toString(), testZaakId)
+        service.createTempData(testZaakUUID.toString())
 
         // Then
         verify(exactly = 1) {
             repository.save(match<ZaakTemporaryData> {
                 it.zaakUUID == testZaakUUID &&
-                        it.zaakId == testZaakId &&
                         it.mapData.isEmpty()
             })
         }
@@ -109,7 +185,7 @@ class TemporaryDataServiceImplTest {
     @Test
     fun `storeTempData by UUID should update existing data and save`() {
         // Given
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf("existing" to "data"))
+        val existingData = ZaakTemporaryData(testZaakUUID, mutableMapOf("existing" to "data"))
         val updatedData = existingData.copy()
         updatedData.mapData[testKey] = testValue
 
@@ -145,47 +221,9 @@ class TemporaryDataServiceImplTest {
     }
 
     @Test
-    fun `storeTempData by zaakId should update existing data and save`() {
-        // Given
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf("existing" to "data"))
-        val updatedData = existingData.copy()
-        updatedData.mapData[testKey] = testValue
-
-        every { repository.findByZaakId(testZaakId) } returns Optional.of(existingData)
-        every { repository.save(any<ZaakTemporaryData>()) } returns updatedData
-
-        // When
-        service.storeTempData(testZaakId, testKey, testValue)
-
-        // Then
-        verify(exactly = 1) { repository.findByZaakId(testZaakId) }
-        verify(exactly = 1) {
-            repository.save(match<ZaakTemporaryData> {
-                it.mapData[testKey] == testValue &&
-                        it.mapData["existing"] == "data"
-            })
-        }
-        assertEquals(testValue, existingData.mapData[testKey])
-    }
-
-    @Test
-    fun `storeTempData by zaakId should throw exception when data not found`() {
-        // Given
-        every { repository.findByZaakId(testZaakId) } returns Optional.empty()
-
-        // When & Then
-        assertThrows<NoSuchElementException> {
-            service.storeTempData(testZaakId, testKey, testValue)
-        }
-
-        verify(exactly = 1) { repository.findByZaakId(testZaakId) }
-        verify(exactly = 0) { repository.save(any<ZaakTemporaryData>()) }
-    }
-
-    @Test
     fun `storeTempData should handle null values`() {
         // Given
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf())
+        val existingData = ZaakTemporaryData(testZaakUUID, mutableMapOf())
 
         every { repository.findByZaakUUID(testZaakUUID) } returns Optional.of(existingData)
         every { repository.save(any<ZaakTemporaryData>()) } returns existingData
@@ -206,7 +244,7 @@ class TemporaryDataServiceImplTest {
     @Test
     fun `getTempData by UUID should return value for existing key`() {
         // Given
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf(testKey to testValue))
+        val existingData = ZaakTemporaryData(testZaakUUID, mutableMapOf(testKey to testValue))
 
         every { repository.findByZaakUUID(testZaakUUID) } returns Optional.of(existingData)
 
@@ -221,7 +259,7 @@ class TemporaryDataServiceImplTest {
     @Test
     fun `getTempData by UUID should return null for non-existing key`() {
         // Given
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf())
+        val existingData = ZaakTemporaryData(testZaakUUID, mutableMapOf())
 
         every { repository.findByZaakUUID(testZaakUUID) } returns Optional.of(existingData)
 
@@ -246,53 +284,12 @@ class TemporaryDataServiceImplTest {
         verify(exactly = 1) { repository.findByZaakUUID(testZaakUUID) }
     }
 
-    @Test
-    fun `getTempData by zaakId should return value for existing key`() {
-        // Given
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf(testKey to testValue))
 
-        every { repository.findByZaakId(testZaakId) } returns Optional.of(existingData)
-
-        // When
-        val result = service.getTempData(testZaakId, testKey)
-
-        // Then
-        assertEquals(testValue, result)
-        verify(exactly = 1) { repository.findByZaakId(testZaakId) }
-    }
-
-    @Test
-    fun `getTempData by zaakId should return null for non-existing key`() {
-        // Given
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf())
-
-        every { repository.findByZaakId(testZaakId) } returns Optional.of(existingData)
-
-        // When
-        val result = service.getTempData(testZaakId, "nonExistingKey")
-
-        // Then
-        assertNull(result)
-        verify(exactly = 1) { repository.findByZaakId(testZaakId) }
-    }
-
-    @Test
-    fun `getTempData by zaakId should throw exception when data not found`() {
-        // Given
-        every { repository.findByZaakId(testZaakId) } returns Optional.empty()
-
-        // When & Then
-        assertThrows<NoSuchElementException> {
-            service.getTempData(testZaakId, testKey)
-        }
-
-        verify(exactly = 1) { repository.findByZaakId(testZaakId) }
-    }
 
     @Test
     fun `getTempData should handle null values correctly`() {
         // Given
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, mutableMapOf(testKey to null))
+        val existingData = ZaakTemporaryData(testZaakUUID, mutableMapOf(testKey to null))
 
         every { repository.findByZaakUUID(testZaakUUID) } returns Optional.of(existingData)
 
@@ -326,7 +323,7 @@ class TemporaryDataServiceImplTest {
             "listValue" to listOf(1, 2, 3),
             "mapValue" to mapOf("nested" to "value")
         )
-        val existingData = ZaakTemporaryData(testZaakUUID, testZaakId, complexData)
+        val existingData = ZaakTemporaryData(testZaakUUID, complexData)
 
         every { repository.findByZaakUUID(testZaakUUID) } returns Optional.of(existingData)
 
@@ -338,36 +335,4 @@ class TemporaryDataServiceImplTest {
         assertEquals(mapOf("nested" to "value"), service.getTempData(testZaakUUID, "mapValue"))
     }
 
-    @Test
-    fun `createTempDataMap should create and save temporary data for valid zaak`() {
-        // Given
-        val zaakResponse = createValidZaakResponse()
-        val event = ZaakCreated(zaakResponse.url.toString(), mapper.valueToTree(zaakResponse))
-
-        every { repository.save(any<ZaakTemporaryData>()) } returns mockk()
-
-        // When
-        service.createTempDataMap(event)
-
-        // Then
-        verify(exactly = 1) {
-            repository.save(match<ZaakTemporaryData> {
-                it.zaakUUID == testZaakUUID &&
-                        it.zaakId == testZaakId &&
-                        it.mapData.isEmpty()
-            })
-        }
-    }
-
-    private fun createValidZaakResponse(): ZaakResponse {
-        return ZaakResponse(
-            url = testZaakUrl,
-            uuid = testZaakUUID,
-            identificatie = testZaakId,
-            bronorganisatie = Rsin("002564440"),
-            zaaktype = URI.create("https://api.example.com/zaaktypen/1"),
-            verantwoordelijkeOrganisatie = Rsin("002564440"),
-            startdatum = LocalDate.now()
-        )
-    }
 }

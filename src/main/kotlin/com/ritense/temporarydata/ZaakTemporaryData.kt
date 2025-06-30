@@ -16,9 +16,6 @@ data class ZaakTemporaryData (
     @Column(name = "zaak_uuid")
     val zaakUUID: UUID,
 
-    @Column(name = "zaak_id")
-    val zaakId: String,
-
     @Convert(converter = MapJsonConverter::class)
     @Column(name = "map_data")
     val mapData: MutableMap<String, Any?>

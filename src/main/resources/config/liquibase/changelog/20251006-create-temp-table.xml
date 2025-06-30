@@ -10,10 +10,6 @@
                 <constraints primaryKey="true" nullable="false" primaryKeyName="tempdata_zaak_uuidPK"/>
             </column>
 
-            <column name="zaak_id" type="VARCHAR(255)">
-                <constraints  nullable="false" unique="true"/>
-            </column>
-
             <column name="map_data" type="TEXT">
                 <constraints nullable="false"/>
             </column>

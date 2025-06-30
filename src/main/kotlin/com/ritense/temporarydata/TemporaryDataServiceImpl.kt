@@ -1,10 +1,9 @@
 package com.ritense.temporarydata
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ritense.valtimo.contract.annotation.ProcessBean
-import com.ritense.zakenapi.domain.ZaakInstanceLink
 import com.ritense.zakenapi.domain.ZaakResponse
 import com.ritense.zakenapi.event.ZaakCreated
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -15,25 +14,31 @@ open class TemporaryDataServiceImpl(
 ): TemporaryDataService {
 
     @Transactional
-    override fun createOrUpdateTempData(zaakUUID: String, zaakId: String, tempData: Map<String, Any?>) {
-        reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), zaakId, tempData.toMutableMap()))
+    override fun createOrUpdateTempData(zaakUUID: String, tempData: Map<String, Any?>) {
+        logger.debug { "writing data ${tempData}" }
+
+        if(reposistory.existsByZaakUUID(UUID.fromString(zaakUUID))){
+            var data = reposistory.findByZaakUUID(UUID.fromString(zaakUUID)).get()
+            var mapData = data.mapData
+            mapData.putAll(tempData)
+
+            logger.debug { "writing merged map data ${mapData}" }
+
+            reposistory.save(data)
+        }
+        else {
+            reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), tempData.toMutableMap()))
+        }
     }
 
     @Transactional
-    override fun createTempData(zaakUUID: String, zaakId: String) {
-        reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), zaakId, mutableMapOf()))
+    override fun createTempData(zaakUUID: String) {
+        reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), mutableMapOf()))
     }
 
     @Transactional
     override fun storeTempData(zaakUUID: UUID, key: String, tempData:Any?) {
         var data = reposistory.findByZaakUUID(zaakUUID).get()
-        data.mapData.put(key, tempData)
-        reposistory.save(data)
-    }
-
-    @Transactional
-    override fun storeTempData(zaakId: String, key: String, tempData: Any?) {
-        var data = reposistory.findByZaakId(zaakId).get()
         data.mapData.put(key, tempData)
         reposistory.save(data)
     }
@@ -45,12 +50,6 @@ open class TemporaryDataServiceImpl(
 
     }
 
-    @Transactional(readOnly = true)
-    override fun getTempData(zaakId: String, key: String): Any? {
-        var data = reposistory.findByZaakId(zaakId).get()
-        return data.mapData.get(key)
-    }
-
     @Transactional
     override fun removeZaakTempData(zaakUUID: UUID) {
         reposistory.deleteByZaakUUID(zaakUUID)
@@ -59,8 +58,12 @@ open class TemporaryDataServiceImpl(
     @EventListener(ZaakCreated::class)
     fun createTempDataMap(event: ZaakCreated) {
         val zaakResponse = objectMapper.readValue(event.result.toString(), ZaakResponse::class.java)
-        val emptyTempData = ZaakTemporaryData(zaakResponse.uuid, zaakResponse.identificatie as String, mutableMapOf())
+        val emptyTempData = ZaakTemporaryData(zaakResponse.uuid, mutableMapOf())
         reposistory.save(emptyTempData);
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
     }
 
 }
