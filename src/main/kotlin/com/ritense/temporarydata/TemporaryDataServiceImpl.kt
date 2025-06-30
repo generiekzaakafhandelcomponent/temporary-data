@@ -37,8 +37,8 @@ open class TemporaryDataServiceImpl(
     }
 
     @Transactional
-    override fun storeTempData(zaakUUID: UUID, key: String, tempData:Any?) {
-        var data = reposistory.findByZaakUUID(zaakUUID).get()
+    override fun storeTempData(zaakUUID: String, key: String, tempData:Any?) {
+        var data = reposistory.findByZaakUUID(UUID.fromString(zaakUUID)).get()
         data.mapData.put(key, tempData)
         reposistory.save(data)
     }

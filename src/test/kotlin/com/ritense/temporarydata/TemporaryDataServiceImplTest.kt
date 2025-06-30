@@ -193,7 +193,7 @@ class TemporaryDataServiceImplTest {
         every { repository.save(any<ZaakTemporaryData>()) } returns updatedData
 
         // When
-        service.storeTempData(testZaakUUID, testKey, testValue)
+        service.storeTempData(testZaakUUID.toString(), testKey, testValue)
 
         // Then
         verify(exactly = 1) { repository.findByZaakUUID(testZaakUUID) }
@@ -213,7 +213,7 @@ class TemporaryDataServiceImplTest {
 
         // When & Then
         assertThrows<NoSuchElementException> {
-            service.storeTempData(testZaakUUID, testKey, testValue)
+            service.storeTempData(testZaakUUID.toString(), testKey, testValue)
         }
 
         verify(exactly = 1) { repository.findByZaakUUID(testZaakUUID) }
@@ -229,7 +229,7 @@ class TemporaryDataServiceImplTest {
         every { repository.save(any<ZaakTemporaryData>()) } returns existingData
 
         // When
-        service.storeTempData(testZaakUUID, testKey, null)
+        service.storeTempData(testZaakUUID.toString(), testKey, null)
 
         // Then
         verify(exactly = 1) { repository.findByZaakUUID(testZaakUUID) }
