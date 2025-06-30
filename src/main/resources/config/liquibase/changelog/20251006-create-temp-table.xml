@@ -14,10 +14,5 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
-
-        <!-- Add index on zaak_id for better query performance -->
-        <createIndex tableName="temporary_data" indexName="idx_temporary_data_zaak_id">
-            <column name="zaak_id"/>
-        </createIndex>
     </changeSet>
 </databaseChangeLog>
