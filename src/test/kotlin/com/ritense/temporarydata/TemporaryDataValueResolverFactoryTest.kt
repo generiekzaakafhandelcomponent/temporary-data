@@ -171,6 +171,25 @@ class TemporaryDataValueResolverFactoryTest {
         verify(exactly = 1) { temporaryDataService.createOrUpdateTempData(testZaakUUID.toString(), emptyValues) }
     }
 
+    @Test
+    fun `should handle values successfully with valid document ID and values`() {
+        // Given
+        val documentId = UUID.randomUUID()
+        val zaakInstanceId = UUID.randomUUID()
+        val values = mapOf("key1" to "value1", "key2" to 42, "key3" to true)
+        val zaakInstanceLink = createZaakInstanceLink(documentId, zaakInstanceId)
+
+        every { zaakInstanceLinkService.getByDocumentId(documentId) } returns zaakInstanceLink
+        every { temporaryDataService.createOrUpdateTempData(zaakInstanceId.toString(), values) } just Runs
+
+        // When
+        factory.handleValues(documentId, values)
+
+        // Then
+        verify { zaakInstanceLinkService.getByDocumentId(documentId) }
+        verify { temporaryDataService.createOrUpdateTempData(zaakInstanceId.toString(), values) }
+    }
+
 
     @Test
     fun `resolver functions should be reusable`() {
@@ -199,6 +218,13 @@ class TemporaryDataValueResolverFactoryTest {
         return mockk<ZaakInstanceLink> {
             every { zaakInstanceLinkId } returns ZaakInstanceLinkId(testLinkId)
             every { zaakInstanceUrl } returns testZaakUrl
+        }
+    }
+
+    private fun createZaakInstanceLink(documentId: UUID, zaakInstanceId: UUID): ZaakInstanceLink {
+        return mockk<ZaakInstanceLink> {
+            every { this@mockk.documentId } returns documentId
+            every { this@mockk.zaakInstanceId } returns zaakInstanceId
         }
     }
 }

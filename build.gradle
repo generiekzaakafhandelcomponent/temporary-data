@@ -89,6 +89,12 @@ if (Os.isMacOsX()) {
     }
 }
 
+tasks.test {
+    useJUnitPlatform {
+        excludeTags ("integration")
+    }
+}
+
 tasks.bootJar {
     enabled = false
 }
@@ -144,10 +150,13 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-webflux"
 
     testImplementation "org.jetbrains.kotlin:kotlin-test"
-    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
     testImplementation 'io.mockk:mockk:1.14.3'
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"
     testImplementation "com.squareup.okhttp3:mockwebserver:${okhttpVersion}"
     testImplementation "com.squareup.okhttp3:okhttp:${okhttpVersion}"
+
+    testImplementation(platform("org.junit:junit-bom:${junitVersion}"))
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
