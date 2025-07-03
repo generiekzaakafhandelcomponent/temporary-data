@@ -36,6 +36,12 @@ open class TemporaryDataValueResolverFactory (
         temporaryDataService.createOrUpdateTempData(zaakInstanceLink.zaakInstanceId.toString(), values)
     }
 
+    override fun handleValues(documentId: UUID, values: Map<String, Any?>) {
+        val zaakInstanceLink = zaakInstanceLinkService.getByDocumentId(documentId)
+
+        temporaryDataService.createOrUpdateTempData(zaakInstanceLink.zaakInstanceId.toString(), values)
+    }
+
     override fun supportedPrefix(): String {
        return PREFIX
     }
