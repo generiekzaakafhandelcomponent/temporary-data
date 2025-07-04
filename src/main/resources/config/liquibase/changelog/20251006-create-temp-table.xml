@@ -1,0 +1,18 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd">
+    <changeSet id="create-temporary-data-table" author="Haiko van der Schaaf">
+        <comment>Create table for storing Java maps as JSON/text data</comment>
+
+        <createTable tableName="temporary_data">
+            <column name="zaak_uuid" type="${uuidType}">
+                <constraints primaryKey="true" nullable="false" primaryKeyName="tempdata_zaak_uuidPK"/>
+            </column>
+
+            <column name="map_data" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
