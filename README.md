@@ -21,12 +21,9 @@ The GZAC Temporary Data Container is a specialized component designed to handle 
 Temporary data for a case is stored in a table in the GZAC Database.
 
 ### Key Features
-
 - **Process-to-Process Communication**: Seamless data exchange between different process instances
-- **Temporary Storage**: Automatic cleanup of expired data
-- **Type Safety**: Support for various data types with validation
-- **Scoped Access**: Data isolation per case, process, or global scope
-- **Performance Optimized**: Fast read/write operations for process efficiency
+- **Type Safety**: Support for various data types
+- **Scoped Access**: Data isolation per case scope
 - **Integration Ready**: Built for GZAC and Valtimo ecosystem compatibility
 
 
@@ -98,8 +95,6 @@ This project is licensed under the EUPL 1.2 License - see the [LICENSE](LICENSE)
 ### Version 0.1.0
 - Initial release
 - Basic temporary data storage
-- Redis and database backends
-- REST API
 - GZAC integration
 
 ---
