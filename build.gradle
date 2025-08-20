@@ -54,10 +54,6 @@ kotlin {
 
 apply from: "gradle/test.gradle.kts"
 
-//test {
-//    useJUnitPlatform()
-//}
-
 configurations {
     testImplementation {
         // Globally exclude JUnit4, will not be on the testCompileClasspath thus
