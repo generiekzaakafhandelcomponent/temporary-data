@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "54342:5432"
+    environment:
+      POSTGRES_DB: temporary-data-test
+      POSTGRES_USER: test-user
+      POSTGRES_PASSWORD: password

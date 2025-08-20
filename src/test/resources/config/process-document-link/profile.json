@@ -1,7 +1,8 @@
 [
-    {
-        "processDefinitionKey": "zaken-api-plugin",
-        "canInitializeDocument": true,
-        "startableByUser": true
-    }
+  {
+    "processDefinitionKey": "TestProcess",
+    "canInitializeDocument": true,
+    "startableByUser": true,
+    "processIsVisibleInMenu": true
+  }
 ]
