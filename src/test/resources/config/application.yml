@@ -5,9 +5,16 @@ logging:
 spring:
     datasource:
         type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: org.postgresql.Driver
+        url: jdbc:postgresql://localhost:54342/temporary-data-test
+        username: test-user
+        password: password
+        hikari:
+          auto-commit: false
     liquibase:
         enabled: false
     jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
         show_sql: false
         open-in-view: false
         properties:

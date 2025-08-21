@@ -1,0 +1,8 @@
+[
+    {
+        "activityId": "user-task",
+        "activityType": "bpmn:UserTask:create",
+        "processLinkType": "form",
+        "formDefinitionName": "form-with-temporarydata-fields"
+    }
+]

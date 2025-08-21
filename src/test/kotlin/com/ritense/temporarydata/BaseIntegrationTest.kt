@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2024 Ritense BV, the Netherlands.
+ * Copyright 2015-2025 Ritense BV, the Netherlands.
  *
  * Licensed under EUPL, Version 1.2 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,15 @@
 package com.ritense.temporarydata
 
 import com.ritense.resource.service.ResourceService
+import com.ritense.valtimo.contract.authentication.UserManagementService
+import com.ritense.valtimo.contract.mail.MailSender
 
 import okhttp3.mockwebserver.MockResponse
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.test.context.junit.jupiter.SpringExtension
 
 @SpringBootTest(classes = [TestApplication::class])
@@ -33,6 +36,12 @@ class BaseIntegrationTest {
 
     @Autowired
     lateinit var resourceService: ResourceService
+
+    @MockBean
+    lateinit var UserManagementService: UserManagementService
+
+    @MockBean
+    lateinit var mailSender: MailSender
 
     fun mockResponse(body: String): MockResponse {
         return MockResponse()

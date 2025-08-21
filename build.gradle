@@ -52,9 +52,7 @@ kotlin {
     jvmToolchain(17)
 }
 
-test {
-    useJUnitPlatform()
-}
+apply from: "gradle/test.gradle.kts"
 
 configurations {
     testImplementation {
@@ -104,6 +102,15 @@ tasks.withType(KotlinCompile).configureEach {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17
         freeCompilerArgs.add("-Xemit-jvm-type-annotations")
+    }
+}
+
+dockerCompose {
+    setProjectName("temporary-data")
+    isRequiredBy(project.tasks.integrationTesting)
+
+    tasks.integrationTesting {
+        useComposeFiles.addAll("$rootDir/docker-compose.yml")
     }
 }
 

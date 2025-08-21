@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package com.ritense.temporarydata
-
-import com.ritense.resource.service.ResourceService
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.test.mock.mockito.MockBean
-
-@SpringBootApplication
-class TestApplication {
-
-    fun main(args: Array<String>) {
-        runApplication<TestApplication>(*args)
+val integrationTesting = tasks.register<Test>("integrationTesting") {
+    description = "Integration tests"
+    group = "verification"
+    systemProperty("spring.profiles.include", "postgresql")
+    useJUnitPlatform {
+        includeTags("integration")
     }
+}
 
-    @TestConfiguration
-    class TestConfig {
+tasks.named("check") {
+    finalizedBy(integrationTesting)
+}
 
-        @MockBean
-        lateinit var resourceService: ResourceService
-    }
+tasks.named("integrationTesting") {
+    finalizedBy("composeDownForced")
 }
