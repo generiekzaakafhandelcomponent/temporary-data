@@ -18,6 +18,26 @@
                 "sourceKey": "tzd:factuurNummer"
             },
             "input": true
+        },
+        {
+            "key": "klachtTitel",
+            "type": "textfield",
+            "label": "Titel klacht",
+            "properties": {
+                "sourceKey": "tzd:klacht.titel",
+                "targetKey": "tzd:klacht.titel"
+            },
+            "input": true
+        },
+        {
+            "key": "klachtOmschrijving",
+            "type": "textfield",
+            "label": "Omschrijving klacht",
+            "properties": {
+                "sourceKey": "tzd:klacht.omschrijving",
+                "targetKey": "tzd:klacht.omschrijving"
+            },
+            "input": true
         }
     ]
 }

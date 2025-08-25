@@ -5,10 +5,12 @@ import com.ritense.zakenapi.domain.ZaakResponse
 import com.ritense.zakenapi.event.ZaakCreated
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.context.event.EventListener
+import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
-open class TemporaryDataServiceImpl(
+@Component
+class TemporaryDataServiceImpl(
     val reposistory: TemporaryDataRepository,
     val objectMapper: ObjectMapper
 ): TemporaryDataService {
@@ -20,14 +22,27 @@ open class TemporaryDataServiceImpl(
         if(reposistory.existsByZaakUUID(UUID.fromString(zaakUUID))){
             var data = reposistory.findByZaakUUID(UUID.fromString(zaakUUID)).get()
             var mapData = data.mapData
-            mapData.putAll(tempData)
+
+            var workMap = mutableMapOf<String, Any?>()
+            tempData.toMutableMap().keys.forEach {
+                var value = tempData.get(it)
+                setNestedValue(workMap, it.split("."), value)
+            }
+
+            mapData.putAll(workMap)
 
             logger.debug { "writing merged map data ${mapData}" }
 
             reposistory.save(data)
         }
         else {
-            reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), tempData.toMutableMap()))
+            var map = mutableMapOf<String, Any?>()
+            tempData.toMutableMap().keys.forEach {
+                var value = tempData.get(it)
+                setNestedValue(map, it.split("."), value)
+            }
+
+            reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), map))
         }
     }
 
@@ -39,15 +54,18 @@ open class TemporaryDataServiceImpl(
     @Transactional
     override fun storeTempData(zaakUUID: String, key: String, tempData:Any?) {
         var data = reposistory.findByZaakUUID(UUID.fromString(zaakUUID)).get()
-        data.mapData.put(key, tempData)
+        setNestedValue(data.mapData, key.split("."), tempData)
         reposistory.save(data)
     }
 
     @Transactional(readOnly = true)
     override fun getTempData(zaakUUID: UUID, key: String): Any? {
         var data = reposistory.findByZaakUUID(zaakUUID).get()
-        return data.mapData.get(key)
 
+        if(!key.contains(".")) {
+            return data.mapData.get(key)
+        }
+        return getNestedValue(data.mapData, key.split("."))
     }
 
     @Transactional
@@ -60,6 +78,51 @@ open class TemporaryDataServiceImpl(
         val zaakResponse = objectMapper.readValue(event.result.toString(), ZaakResponse::class.java)
         val emptyTempData = ZaakTemporaryData(zaakResponse.uuid, mutableMapOf())
         reposistory.save(emptyTempData);
+    }
+
+    private fun getNestedValue(map: Any?, keys: List<String>): Any? {
+        if (keys.isEmpty() || map == null) return map
+
+        val currentKey = keys.first()
+        val remainingKeys = keys.drop(1)
+
+        val nextValue = when (map) {
+            is Map<*, *> -> map[currentKey]
+            else -> null
+        }
+
+        return if (remainingKeys.isEmpty()) {
+            nextValue
+        } else {
+            getNestedValue(nextValue, remainingKeys)
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun setNestedValue(map: MutableMap<String, Any?>, keys: List<String>, value: Any?) {
+        if (keys.isEmpty()) return
+
+        val currentKey = keys.first()
+        val remainingKeys = keys.drop(1)
+
+        if (remainingKeys.isEmpty()) {
+            map[currentKey] = value
+        } else {
+            val nextMap = when (val existing = map[currentKey]) {
+                is MutableMap<*, *> -> existing as MutableMap<String, Any?>
+                null -> {
+                    val newMap = mutableMapOf<String, Any?>()
+                    map[currentKey] = newMap
+                    newMap
+                }
+                else -> {
+                    val newMap = mutableMapOf<String, Any?>()
+                    map[currentKey] = newMap
+                    newMap
+                }
+            }
+            setNestedValue(nextMap, remainingKeys, value)
+        }
     }
 
     companion object {
