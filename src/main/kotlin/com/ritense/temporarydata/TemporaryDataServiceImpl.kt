@@ -16,6 +16,8 @@
 
 package com.ritense.temporarydata
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ritense.zakenapi.domain.ZaakResponse
 import com.ritense.zakenapi.event.ZaakCreated
@@ -24,6 +26,7 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import kotlin.collections.LinkedHashMap
 
 @Component
 class TemporaryDataServiceImpl(
@@ -122,7 +125,14 @@ class TemporaryDataServiceImpl(
         val remainingKeys = keys.drop(1)
 
         if (remainingKeys.isEmpty()) {
-            map[currentKey] = value
+            if(map[currentKey] is LinkedHashMap<*, *> && value is LinkedHashMap<*, *>) {
+                var currentValue = map[currentKey] as LinkedHashMap<String, Any?>
+                var updateValue  = value as LinkedHashMap<String, Any>
+                currentValue.putAll(updateValue)
+            }
+            else {
+                map.put(currentKey, value)
+            }
         } else {
             val nextMap = when (val existing = map[currentKey]) {
                 is MutableMap<*, *> -> existing as MutableMap<String, Any?>
