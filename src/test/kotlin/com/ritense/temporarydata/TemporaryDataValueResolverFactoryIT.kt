@@ -146,7 +146,8 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
                  }
               """
 
-            val klacht  = objectMapper.readTree(json)
+            val valueReolverMapTypeRef = object : TypeReference<MutableMap<String, Any>>() {}
+            val klacht = objectMapper.readValue(json, valueReolverMapTypeRef)
 
             temporaryDataService.createOrUpdateTempData(
                 zaakInstanceId.toString(),
@@ -244,7 +245,8 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
                  }
               """
 
-            val klacht = objectMapper.readTree(json)
+            val valueReolverMapTypeRef = object : TypeReference<MutableMap<String, Any>>() {}
+            val klacht = objectMapper.readValue(json, valueReolverMapTypeRef)
 
             temporaryDataService.createOrUpdateTempData(
                 zaakInstanceId.toString(),
@@ -314,7 +316,8 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
                  }
               """
 
-            val klacht = objectMapper.readTree(json)
+            val valueReolverMapTypeRef = object : TypeReference<MutableMap<String, Any>>() {}
+            val klacht = objectMapper.readValue(json, valueReolverMapTypeRef)
 
             temporaryDataService.createOrUpdateTempData(
                 zaakInstanceId.toString(),
@@ -345,7 +348,7 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
                  }
               """
 
-            val klachtUpdate = objectMapper.readTree(jsonUpdate)
+            val klachtUpdate = objectMapper.readValue(jsonUpdate, valueReolverMapTypeRef)
 
             temporaryDataService.storeTempData(
                 zaakInstanceId.toString(),
