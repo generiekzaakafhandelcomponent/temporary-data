@@ -16,9 +16,10 @@
 
 package com.ritense.temporarydata
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.JsonNode
+
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.ritense.temporarydata.TemporaryDataValueResolverFactory.Companion.SEPARATOR
+import com.ritense.temporarydata.TemporaryDataValueResolverFactory.Companion.FORM_SEPARATOR
 import com.ritense.zakenapi.domain.ZaakResponse
 import com.ritense.zakenapi.event.ZaakCreated
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -27,6 +28,8 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 import kotlin.collections.LinkedHashMap
+
+
 
 @Component
 class TemporaryDataServiceImpl(
@@ -44,8 +47,9 @@ class TemporaryDataServiceImpl(
 
             var workMap = mutableMapOf<String, Any?>()
             tempData.toMutableMap().keys.forEach {
-                var value = tempData.get(it)
-                setNestedValue(workMap, it.split("."), value)
+                var key = it.replace(".", SEPARATOR)
+                var value = tempData.get(key)
+                setNestedValue(workMap, key.split(SEPARATOR), value)
             }
 
             mapData.putAll(workMap)
@@ -57,8 +61,9 @@ class TemporaryDataServiceImpl(
         else {
             var map = mutableMapOf<String, Any?>()
             tempData.toMutableMap().keys.forEach {
-                var value = tempData.get(it)
-                setNestedValue(map, it.split("."), value)
+                var key = it.replace(FORM_SEPARATOR, SEPARATOR)
+                var value = tempData.get(key)
+                setNestedValue(map, key.split(SEPARATOR), value)
             }
 
             reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), map))
@@ -73,7 +78,7 @@ class TemporaryDataServiceImpl(
     @Transactional
     override fun storeTempData(zaakUUID: String, key: String, tempData:Any?) {
         var data = reposistory.findByZaakUUID(UUID.fromString(zaakUUID)).get()
-        setNestedValue(data.mapData, key.split("."), tempData)
+        setNestedValue(data.mapData, key.split(SEPARATOR), tempData)
         reposistory.save(data)
     }
 
@@ -81,10 +86,12 @@ class TemporaryDataServiceImpl(
     override fun getTempData(zaakUUID: UUID, key: String): Any? {
         var data = reposistory.findByZaakUUID(zaakUUID).get()
 
-        if(!key.contains(".")) {
-            return data.mapData.get(key)
+        var formattedKey = key.replace(FORM_SEPARATOR, SEPARATOR)
+
+        if(!formattedKey.contains(SEPARATOR)) {
+            return data.mapData.get(formattedKey)
         }
-        return getNestedValue(data.mapData, key.split("."))
+        return getNestedValue(data.mapData, formattedKey.split(SEPARATOR))
     }
 
     @Transactional

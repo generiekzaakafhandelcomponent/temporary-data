@@ -220,7 +220,7 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
               """
 
             // Then
-            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht.titel")).isEqualTo("Erpacht is te hoog")
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht/titel")).isEqualTo("Erpacht is te hoog")
             val klacht = temporaryDataService.getTempData(zaakInstanceId, "klacht")
             val serializedKLacht = objectMapper.writeValueAsString(klacht)
             JSONAssert.assertEquals(json, serializedKLacht, false)
@@ -426,6 +426,73 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
     }
 
     @Test
+    fun `should partially update data and add new properties using service method using nested proprties from the Temporary Data repo`() {
+        runWithoutAuthorization {
+            //prefill with valiues
+            val documentId = documentService.createDocument(
+                NewDocumentRequest("profile", objectMapper.createObjectNode())
+            ).resultingDocument().get().id()
+
+            val zaakInstanceId = UUID.randomUUID()
+            zaakInstanceLinkService.createZaakInstanceLink(URI.create(""), zaakInstanceId, documentId.id, URI.create(""))
+
+            val json = """
+                 {
+                    "titel":"Erpacht is te hoog",
+                    "omschrijving":"Mijn erfpacht is in de nieuwe situatie veel te hoog"
+                 }
+              """
+
+            val valueReolverMapTypeRef = object : TypeReference<MutableMap<String, Any>>() {}
+            val klacht = objectMapper.readValue(json, valueReolverMapTypeRef)
+
+            temporaryDataService.createOrUpdateTempData(
+                zaakInstanceId.toString(),
+                mapOf("relatieNummer" to "012345", "factuurNummer" to "98765", "klacht" to klacht)
+            )
+
+            val formDefinition = formDefinitionRepository.findByName("form-with-temporarydata-fields").get()
+            val prefilledFormDefinition = prefillFormService.getPrefilledFormDefinition(
+                formDefinition.id!!,
+                documentId.id
+            )
+
+            assertThat(
+                JsonPath.read<List<String>>(
+                    prefilledFormDefinition.asJson().toString(),
+                    "$.components[?(@.properties.sourceKey=='tzd:klacht.titel')].defaultValue"
+                ).toString()
+            ).isEqualTo("""["Erpacht is te hoog"]""")
+
+
+
+            // When
+            // use service method mimicking service tasks.
+            val jsonUpdate = """
+                 {
+                    "titel":"Erpacht is te laag",
+                    "prio" : {
+                                "code": 2
+                             }
+                 }
+              """
+
+            val klachtUpdate = objectMapper.readValue(jsonUpdate, valueReolverMapTypeRef)
+
+            temporaryDataService.storeTempData(
+                zaakInstanceId.toString(),
+                "klacht",
+                klachtUpdate
+            )
+
+            //then
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht.titel")).isEqualTo("Erpacht is te laag")
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht.omschrijving")).isEqualTo("Mijn erfpacht is in de nieuwe situatie veel te hoog")
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht.prio.code")).isEqualTo(2)
+        }
+    }
+
+    @Test
     fun `should create on event and store temporary data from service method`() {
         runWithoutAuthorization {
             // Given
@@ -456,16 +523,17 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
                  }
               """
 
-            val klachtUpdate = objectMapper.readTree(json)
+            val valueReolverMapTypeRef = object : TypeReference<MutableMap<String, Any>>() {}
+            val klacht = objectMapper.readValue(json, valueReolverMapTypeRef)
 
             temporaryDataService.storeTempData(
                 zaakInstanceId.toString(),
                 "klacht",
-                klachtUpdate
+                klacht
             )
 
 
-            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht.titel")).isEqualTo("Erpacht is te laag")
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht/titel")).isEqualTo("Erpacht is te laag")
         }
     }
 

@@ -38,10 +38,10 @@ open class TemporaryDataValueResolverFactory (
     }
 
     override fun createResolver(processInstanceId: String, variableScope: VariableScope): Function<String, Any?> {
-        return Function { requestedValue ->
-            logger.debug { "Requested zaak object value '$requestedValue' for process $processInstanceId" }.toString()
+        return Function { key ->
+            logger.debug { "Requested zaak object value '$key' for process $processInstanceId" }.toString()
             val documentId = processDocumentService.getDocumentId(CamundaProcessInstanceId(processInstanceId), variableScope).toString()
-            getZaakTempData(requestedValue, documentId)
+            getZaakTempData(key, documentId)
         }
     }
 
@@ -49,26 +49,43 @@ open class TemporaryDataValueResolverFactory (
         val documentId = processDocumentService.getDocumentId(CamundaProcessInstanceId(processInstanceId), variableScope).toString()
         val zaakInstanceLink = zaakInstanceLinkService.getByDocumentId(UUID.fromString(documentId))
 
-        temporaryDataService.createOrUpdateTempData(zaakInstanceLink.zaakInstanceId.toString(), values)
+        val workValues = values.mapKeys { (key, _) ->
+            key.replace(FORM_SEPARATOR, SEPARATOR)
+        }
+
+        temporaryDataService.createOrUpdateTempData(zaakInstanceLink.zaakInstanceId.toString(), workValues)
     }
 
     override fun handleValues(documentId: UUID, values: Map<String, Any?>) {
         val zaakInstanceLink = zaakInstanceLinkService.getByDocumentId(documentId)
 
-        temporaryDataService.createOrUpdateTempData(zaakInstanceLink.zaakInstanceId.toString(), values)
+        val workValues = values.mapKeys { (key, _) ->
+            key.replace(FORM_SEPARATOR, SEPARATOR)
+        }
+
+        temporaryDataService.createOrUpdateTempData(zaakInstanceLink.zaakInstanceId.toString(), workValues)
     }
 
     override fun supportedPrefix(): String {
        return PREFIX
     }
 
-    private fun getZaakTempData(requestedValue: String, documentId: String): Any? {
+    private fun getZaakTempData(key: String, documentId: String): Any? {
         val zaakInstanceLink = zaakInstanceLinkService.getByDocumentId(UUID.fromString(documentId))
         logger.debug { "getting zaakdata for zaak: ${zaakInstanceLink.zaakInstanceId}" }
-        return temporaryDataService.getTempData(zaakInstanceLink.zaakInstanceId, requestedValue)
+
+        var formattedKey = key.replace( FORM_SEPARATOR, SEPARATOR)
+
+        if(formattedKey.startsWith(SEPARATOR)) {
+            formattedKey = formattedKey.substring(1)
+        }
+
+        return temporaryDataService.getTempData(zaakInstanceLink.zaakInstanceId, formattedKey)
     }
 
     companion object {
+        val SEPARATOR = "/"
+        val FORM_SEPARATOR = "."
         private val logger = KotlinLogging.logger {}
         const val PREFIX = "tzd" // temporary zaak data
     }
