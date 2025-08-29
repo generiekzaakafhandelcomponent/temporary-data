@@ -1,6 +1,7 @@
 package com.ritense.temporarydata
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.ritense.valtimo.contract.annotation.ProcessBean
 import com.ritense.zakenapi.domain.ZaakResponse
 import com.ritense.zakenapi.event.ZaakCreated
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
+@ProcessBean
 @Component
 class TemporaryDataServiceImpl(
     val reposistory: TemporaryDataRepository,
