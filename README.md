@@ -96,6 +96,11 @@ This project is licensed under the EUPL 1.2 License - see the [LICENSE](LICENSE)
 - Initial release
 - Basic temporary data storage
 - GZAC integration
+### Version 0.2.0
+- bugfix nested properties
+- add support for JSONPath notation
+- add license headers
+
 
 ---
 
