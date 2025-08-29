@@ -9,6 +9,8 @@ Temporary data container to exchange data between processes during a running cas
 - [Usage](#usage)
 - [Data Types](#data-types)
 - [Contributing](#contributing)
+- [Support](#support)
+- [Changelog](#changelog)
 
 ## Overview
 
@@ -31,8 +33,8 @@ Temporary data for a case is stored in a table in the GZAC Database.
 
 ### Prerequisites
 
-- Java 11 or higher
-- Spring Boot 2.7+
+- Java 17 or higher
+- Spring Boot 3.2+
 - GZAC backend 12.12 or higher
 
 ### Installation
