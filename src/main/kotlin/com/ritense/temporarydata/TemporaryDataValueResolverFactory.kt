@@ -50,7 +50,7 @@ open class TemporaryDataValueResolverFactory (
         val zaakInstanceLink = zaakInstanceLinkService.getByDocumentId(UUID.fromString(documentId))
 
         val workValues = values.mapKeys { (key, _) ->
-            key.replace(FORM_SEPARATOR, SEPARATOR)
+            key.replace(FORM_SEPARATOR, SEPARATOR).removePrefix("/")
         }
 
         temporaryDataService.createOrUpdateTempData(zaakInstanceLink.zaakInstanceId.toString(), workValues)
@@ -60,7 +60,7 @@ open class TemporaryDataValueResolverFactory (
         val zaakInstanceLink = zaakInstanceLinkService.getByDocumentId(documentId)
 
         val workValues = values.mapKeys { (key, _) ->
-            key.replace(FORM_SEPARATOR, SEPARATOR)
+            key.replace(FORM_SEPARATOR, SEPARATOR).removePrefix("/")
         }
 
         temporaryDataService.createOrUpdateTempData(zaakInstanceLink.zaakInstanceId.toString(), workValues)

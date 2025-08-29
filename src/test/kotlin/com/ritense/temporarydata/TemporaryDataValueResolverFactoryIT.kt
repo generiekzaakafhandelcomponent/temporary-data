@@ -270,7 +270,7 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
             val definitionProcessLink = processLinkService.getProcessLinksByProcessDefinitionKey("TestProcess")[0]
             val startProcSoc = StartProcessForDocumentRequest(documentId,
                 PROCESS_DEFINITION_KEY,
-                mapOf("relatieNummer" to "012345", "factuurNummer" to "98765")
+                mapOf()
             )
             val startResult = processDocumentService.startProcessForDocument(startProcSoc)
 
@@ -278,9 +278,8 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
 
             val formData = objectMapper.createObjectNode()
                 .put("relatieNummer", "245678")
-                .put("factuurNummer", "87654")
                 .put("klachtTitel", "Erpacht is te laag")
-                .put("klachtOmschrijving", "Jouw erfpacht is in de nieuwe situatie veel te laag")
+
 
             // When
             formSubmissionService.handleSubmission(
@@ -293,7 +292,9 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
 
             //then
             assertThat(temporaryDataService.getTempData(zaakInstanceId, "relatieNummer")).isEqualTo("245678")
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "factuurNummer")).isEqualTo("98765")
             assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht.titel")).isEqualTo("Erpacht is te laag")
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht.omschrijving")).isEqualTo("Mijn erfpacht is in de nieuwe situatie veel te hoog")
 
         }
     }
@@ -312,7 +313,10 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
             val json = """
                  {
                     "titel":"Erpacht is te hoog",
-                    "omschrijving":"Mijn erfpacht is in de nieuwe situatie veel te hoog"
+                    "omschrijving":"Mijn erfpacht is in de nieuwe situatie veel te hoog",
+                    "prio": {
+                        "code": 3
+                       }
                  }
               """
 
@@ -357,7 +361,8 @@ class TemporaryDataValueResolverFactoryIT @Autowired constructor(
             )
 
             //then
-            assertThat(temporaryDataService.getTempData(zaakInstanceId, "klacht.titel")).isEqualTo("Erpacht is te laag")
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "/klacht/titel")).isEqualTo("Erpacht is te laag")
+            assertThat(temporaryDataService.getTempData(zaakInstanceId, "/klacht/prio/code")).isEqualTo(3)
 
         }
     }

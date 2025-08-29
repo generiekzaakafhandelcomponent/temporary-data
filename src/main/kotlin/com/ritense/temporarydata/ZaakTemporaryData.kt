@@ -34,5 +34,5 @@ data class ZaakTemporaryData (
 
     @Convert(converter = MapJsonConverter::class)
     @Column(name = "map_data")
-    val mapData: MutableMap<String, Any?>
+    var mapData: MutableMap<String, Any?>
 )
