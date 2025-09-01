@@ -1,6 +1,25 @@
+/*
+ * Copyright 2015-2025. Ritense BV, the Netherlands.
+ *
+ *  Licensed under EUPL, Version 1.2 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  https://joinup.ec.europa.eu/collection/eupl/eupl-text-eupl-12
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" basis,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.ritense.temporarydata
 
+
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.ritense.temporarydata.TemporaryDataValueResolverFactory.Companion.SEPARATOR
+import com.ritense.temporarydata.TemporaryDataValueResolverFactory.Companion.FORM_SEPARATOR
 import com.ritense.valtimo.contract.annotation.ProcessBean
 import com.ritense.zakenapi.domain.ZaakResponse
 import com.ritense.zakenapi.event.ZaakCreated
@@ -9,6 +28,8 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import kotlin.collections.LinkedHashMap
+
 
 @ProcessBean
 @Component
@@ -27,11 +48,14 @@ class TemporaryDataServiceImpl(
 
             var workMap = mutableMapOf<String, Any?>()
             tempData.toMutableMap().keys.forEach {
-                var value = tempData.get(it)
-                setNestedValue(workMap, it.split("."), value)
+                var key = it.replace(".", SEPARATOR)
+                var value = tempData.get(key)
+                setNestedValue(workMap, key.split(SEPARATOR), value)
             }
 
-            mapData.putAll(workMap)
+            mapData = mapData.deepMergeToMutable(workMap)
+
+            data.mapData = mapData
 
             logger.debug { "writing merged map data ${mapData}" }
 
@@ -40,8 +64,9 @@ class TemporaryDataServiceImpl(
         else {
             var map = mutableMapOf<String, Any?>()
             tempData.toMutableMap().keys.forEach {
-                var value = tempData.get(it)
-                setNestedValue(map, it.split("."), value)
+                var key = it.replace(FORM_SEPARATOR, SEPARATOR)
+                var value = tempData.get(key)
+                setNestedValue(map, key.split(SEPARATOR), value)
             }
 
             reposistory.save(ZaakTemporaryData(UUID.fromString(zaakUUID), map))
@@ -56,7 +81,7 @@ class TemporaryDataServiceImpl(
     @Transactional
     override fun storeTempData(zaakUUID: String, key: String, tempData:Any?) {
         var data = reposistory.findByZaakUUID(UUID.fromString(zaakUUID)).get()
-        setNestedValue(data.mapData, key.split("."), tempData)
+        setNestedValue(data.mapData, key.split(SEPARATOR), tempData)
         reposistory.save(data)
     }
 
@@ -64,10 +89,12 @@ class TemporaryDataServiceImpl(
     override fun getTempData(zaakUUID: UUID, key: String): Any? {
         var data = reposistory.findByZaakUUID(zaakUUID).get()
 
-        if(!key.contains(".")) {
-            return data.mapData.get(key)
+        var formattedKey = key.replace(FORM_SEPARATOR, SEPARATOR).removePrefix("/")
+
+        if(!formattedKey.contains(SEPARATOR)) {
+            return data.mapData.get(formattedKey)
         }
-        return getNestedValue(data.mapData, key.split("."))
+        return getNestedValue(data.mapData, formattedKey.split(SEPARATOR))
     }
 
     @Transactional
@@ -108,7 +135,14 @@ class TemporaryDataServiceImpl(
         val remainingKeys = keys.drop(1)
 
         if (remainingKeys.isEmpty()) {
-            map[currentKey] = value
+            if(map[currentKey] is LinkedHashMap<*, *> && value is LinkedHashMap<*, *>) {
+                var currentValue = map[currentKey] as LinkedHashMap<String, Any?>
+                var updateValue  = value as LinkedHashMap<String, Any>
+                currentValue.putAll(updateValue)
+            }
+            else {
+                map.put(currentKey, value)
+            }
         } else {
             val nextMap = when (val existing = map[currentKey]) {
                 is MutableMap<*, *> -> existing as MutableMap<String, Any?>
@@ -125,6 +159,41 @@ class TemporaryDataServiceImpl(
             }
             setNestedValue(nextMap, remainingKeys, value)
         }
+    }
+
+    fun Map<String, Any?>.deepMergeToMutable(other: Map<String, Any?>): MutableMap<String, Any?> {
+        return (this.keys + other.keys).associateWith { key ->
+            val thisValue = this[key]
+            val otherValue = other[key]
+
+            when {
+                // Other map has the key - use its value (overwrite behavior)
+                other.containsKey(key) -> {
+                    if (thisValue is Map<*, *> && otherValue is Map<*, *>) {
+                        @Suppress("UNCHECKED_CAST")
+                        (thisValue as Map<String, Any?>)
+                            .deepMergeToMutable(otherValue as Map<String, Any?>)
+                    } else {
+                        // Convert to mutable if it's a map, otherwise use as-is
+                        when (otherValue) {
+                            is Map<*, *> -> {
+                                @Suppress("UNCHECKED_CAST")
+                                (otherValue as Map<String, Any?>).toMutableMap()
+                            }
+                            else -> otherValue // Can be null
+                        }
+                    }
+                }
+                // Keep original value, converting to mutable if needed
+                else -> when (thisValue) {
+                    is Map<*, *> -> {
+                        @Suppress("UNCHECKED_CAST")
+                        (thisValue as Map<String, Any?>).toMutableMap()
+                    }
+                    else -> thisValue
+                }
+            }
+        }.toMutableMap()
     }
 
     companion object {
