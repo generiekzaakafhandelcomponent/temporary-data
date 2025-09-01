@@ -33,7 +33,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 @EntityScan(basePackages = ["com.ritense.temporarydata"])
 class TemporaryDataAutoConfiguration {
 
-    @ProcessBean
     @Bean
     @ConditionalOnMissingBean(TemporaryDataService::class)
     fun temporaryDataService (
