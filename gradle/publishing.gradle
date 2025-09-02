@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-
 def sonatypeCentralStagingDir = "sonatypeCentralStaging"
 def signingConfigSet = false
 if(System.getenv('SIGNING_KEY') &&
@@ -49,6 +48,16 @@ publishing {
 
 
             pom {
+                name = 'Temporary data container'
+                description = 'The Temporary data container enables to exchange data between processes during a running case within the Generiek Zaakafhandelcomponent (GZAC) ecosystem'
+                developers {
+                    developer {
+                        id = "haiko-ritense"
+                        name = "Haikko van der Schaaf"
+                        email = "haiko.van.der.schaaf@ritense.com"
+                    }
+                }
+
                 url = 'https://github.com/generiekzaakafhandelcomponent/temporary-data'
                 licenses {
                     license {
