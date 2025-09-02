@@ -45,7 +45,6 @@ java.targetCompatibility = JavaVersion.VERSION_17
 
 java {
     withSourcesJar()
-    withJavadocJar()
 }
 
 kotlin {
@@ -53,6 +52,7 @@ kotlin {
 }
 
 apply from: "gradle/test.gradle.kts"
+apply from: "gradle/publishing.gradle"
 
 configurations {
     testImplementation {
@@ -63,6 +63,7 @@ configurations {
 
 jar {
     enabled = true
+    archiveClassifier = ''
     manifest {
         attributes(
                 "Implementation-Title": projectName,
