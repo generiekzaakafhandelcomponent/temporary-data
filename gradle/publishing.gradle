@@ -14,7 +14,6 @@
  *  limitations under the License.
  */
 
-
 def sonatypeCentralStagingDir = "sonatypeCentralStaging"
 def signingConfigSet = false
 if(System.getenv('SIGNING_KEY') &&
@@ -31,7 +30,7 @@ if(System.getenv('SONATYPE_USR') &&
         System.getenv('SONATYPE_PSW')
 ) {
     apply plugin: 'maven-publish'
-    apply plugin: 'cn.lalaki.central'
+    apply plugin: 'org.jreleaser'
 }
 
 publishing {
@@ -49,6 +48,16 @@ publishing {
 
 
             pom {
+                name = 'Temporary data container'
+                description = 'The Temporary data container enables to exchange data between processes during a running case within the Generiek Zaakafhandelcomponent (GZAC) ecosystem'
+                developers {
+                    developer {
+                        id = "ritense"
+                        name = "Ritense B.V."
+                        email = "info@ritense.com"
+                    }
+                }
+
                 url = 'https://github.com/generiekzaakafhandelcomponent/temporary-data'
                 licenses {
                     license {
@@ -67,10 +76,32 @@ publishing {
     }
 }
 
-centralPortalPlus {
-    url = uri(sonatypeCentralStagingDir)
-    username = System.getenv('SONATYPE_USR')
-    password = System.getenv('SONATYPE_PSW')
+jreleaser {
+    deploy {
+        maven {
+            mavenCentral {
+                sonatype {
+                    active = 'RELEASE'
+                    url = 'https://central.sonatype.com/api/v1/publisher'
+                    applyMavenCentralRules = false
+                    snapshotSupported = false
+                    sign = false
+                    username = System.getenv('SONATYPE_USR')
+                    password = System.getenv('SONATYPE_PSW')
+                    retryDelay = 60
+                }
+            }
+            nexus2 {
+                sonatypeSnapshots {
+                    active = 'SNAPSHOT'
+                    snapshotUrl = 'https://central.sonatype.com/repository/maven-snapshots/'
+                    snapshotSupported = true
+                    username = System.getenv('SONATYPE_USR')
+                    password = System.getenv('SONATYPE_PSW')
+                }
+            }
+        }
+    }
 }
 
 if(signingConfigSet) {
@@ -86,28 +117,3 @@ if(signingConfigSet) {
     }
 }
 
-
-def filterVersionLine(bufferedReader) {
-    def line
-    def versionLine
-    while ((line = bufferedReader.readLine()) != null) {
-        if((line.startsWith('version') && !line.startsWith('version.')) || line.startsWith('projectVersion') || line.startsWith('version.semver')) {
-            versionLine = line.split('=')
-        }
-    }
-    return versionLine
-}
-
-def parseProjectVersion(filePath) {
-    def fileString = new File(filePath).getText('UTF-8')
-    def bufferedReader = new BufferedReader(new StringReader(fileString))
-    def versionLine = filterVersionLine(bufferedReader)
-
-    // strip off -SNAPSHOT postfixes
-    def projectVersion = versionLine[1]
-    projectVersion = projectVersion.trim()
-    if(projectVersion.contains('-')) {
-        projectVersion = projectVersion.split('-')[0]
-    }
-    return projectVersion
-}

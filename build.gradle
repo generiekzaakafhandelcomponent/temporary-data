@@ -11,8 +11,7 @@ plugins {
 
     // Other
     id("com.avast.gradle.docker-compose") version "0.17.12"
-    id("cn.lalaki.central") version "1.2.5"
-}
+    id "org.jreleaser" version "${jreleaserPluginVersion}"}
 
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
