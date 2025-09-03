@@ -52,9 +52,9 @@ publishing {
                 description = 'The Temporary data container enables to exchange data between processes during a running case within the Generiek Zaakafhandelcomponent (GZAC) ecosystem'
                 developers {
                     developer {
-                        id = "haiko-ritense"
-                        name = "Haiko van der Schaaf"
-                        email = "haiko.van.der.schaaf@ritense.com"
+                        id = "ritense"
+                        name = "Ritense B.V."
+                        email = "info@ritense.com"
                     }
                 }
 
