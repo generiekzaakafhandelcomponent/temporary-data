@@ -41,8 +41,31 @@ Temporary data for a case is stored in a table in the GZAC Database.
 Checkout the github repository.
 Compile the library as JAR using the gradle script and include in your GZAC Implementation.
 
-### Usage
-Use temporary-data container value resolver prefix 'tzd' to store or retrieve values from the temporary-data container in GZAC forms. For example, tzd:someValue.
+## Usage
+Temporary Data uses the [Value Resolver](https://docs.valtimo.nl/features/forms/creating-forms-in-valtimo#value-resolvers) functionality to enable storing and retrieving data
+in forms. This is also usable in expressions in BPMN models. Temporary Data uses `tzd` as prefix.
+
+### Forms
+Temporary data can be used in forms as any other Value Resolver resource. Properties have to be referenced with the `tzd` prefix. See the example below using a FormIO form.
+```json
+"display": "form",
+    "components": [
+        {
+            "key": "titel",
+            "type": "textfield",
+            "input": true,
+            "label": "Titel",
+            "tableView": true,
+            "attributes": {
+                "data-testid": "demoKlachtForm-titel"
+            },
+            "properties": {
+                "sourceKey": "tzd:klacht.titel",
+                "targetKey": "tzd:klacht.titel"
+            },
+            "applyMaskOn": "change"
+        },
+```
 
 ## Data Types
 
